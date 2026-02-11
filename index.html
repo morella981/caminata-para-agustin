@@ -24,67 +24,69 @@ const agustin = new Image(); agustin.src = "agustin.png";
 const morella = new Image(); morella.src = "morella.png";
 
 // JUGADOR
-const player = { x:100, w:64, h:64, speed:4 };
+const player = { x:100, y:0, w:64, h:64, speed:4 };
 const groundY = canvas.height - 100;
 player.y = groundY - player.h + 8;
 
-// TIEMPO
-const startTime = Date.now();
-
-// CARTAS
+// CARTAS (todas desde el inicio, muy separadas)
 const cartas = [
- {x:400,color:"#ffd1dc",texto:"Hola mi amor,\nespero que disfrutes\nesta caminata :)",time:0,tomada:false},
- {x:650,color:"#d1e8ff",texto:"Ojalá no te empaches\ncon los chocolates\nde hoy",time:10000,tomada:false},
- {x:900,color:"#e8d1ff",texto:"Sos el chico más\nlindo hasta en\nformato 2D",time:20000,tomada:false},
- {x:1150,color:"#d1ffe3",texto:"Se te acumulan\nlos pajaritos,\nya pensaste un nombre\npara cada uno?",time:30000,tomada:false},
- {x:1400,color:"#fff3d1",texto:"Apurate que te\nestoy esperando!!",time:40000,tomada:false},
- {x:1650,color:"#ffd1f0",texto:"Ya casi me encontrás,\nbesitoo",time:50000,tomada:false}
+ {x:500,color:"#ffd1dc",texto:"Hola mi amor,\nespero que disfrutes\nesta caminata :)"},
+ {x:900,color:"#d1e8ff",texto:"Ojalá no te empaches\ncon los chocolates\nde hoy"},
+ {x:1300,color:"#e8d1ff",texto:"Sos el chico más\nlindo hasta en\nformato 2D"},
+ {x:1700,color:"#d1ffe3",texto:"Se te acumulan\nlos pajaritos,\nya pensaste un nombre\npara cada uno?"},
+ {x:2100,color:"#fff3d1",texto:"Apurate que te\nestoy esperando!!"},
+ {x:2500,color:"#ffd1f0",texto:"Ya casi me encontrás,\nbesitoo"}
 ];
 
 let cartaAbierta=null;
 const pajaros=[];
 
-// FINAL
-let showMorella=false;
+// MORELLA
+const morellaX = 3100;
 let dialogoFinal=false;
 let abrazo=false;
 let camUp=0;
-let corazonFinal=false;
-let textoFinal=false;
+let finalActivo=false;
 
 // INPUT
 const keys={};
 window.addEventListener("keydown",e=>keys[e.key]=true);
 window.addEventListener("keyup",e=>keys[e.key]=false);
-canvas.addEventListener("click",()=>{ if(showMorella) dialogoFinal=true; });
+canvas.addEventListener("click",()=>{
+  if(Math.abs(player.x-morellaX)<80 && !dialogoFinal && !abrazo)
+    dialogoFinal=true;
+});
 
 // TEXTO
 function drawBox(text){
+ const boxX=canvas.width/2-300;
+ const boxY=canvas.height/2-180;
  ctx.fillStyle="#fff";
- ctx.fillRect(canvas.width/2-280,canvas.height/2-160,560,260);
+ ctx.fillRect(boxX,boxY,600,280);
  ctx.strokeStyle="#e6b7d6";
- ctx.strokeRect(canvas.width/2-280,canvas.height/2-160,560,260);
+ ctx.strokeRect(boxX,boxY,600,280);
+
  ctx.fillStyle="#444";
  ctx.font="20px Trebuchet MS";
  text.split("\n").forEach((l,i)=>{
-   ctx.fillText(l,canvas.width/2-250,canvas.height/2-60+i*28);
+   ctx.fillText(l,boxX+60,boxY+70+i*28);
  });
+
  ctx.font="14px sans-serif";
- ctx.fillText("ENTER para cerrar",canvas.width/2-250,canvas.height/2+80);
+ ctx.fillText("ENTER para cerrar",boxX+220,boxY+240);
 }
 
 // UPDATE
 function update(){
- const t=Date.now()-startTime;
-
  if(!cartaAbierta && !dialogoFinal && !abrazo){
    if(keys["ArrowRight"]) player.x+=player.speed;
    if(keys["ArrowLeft"]) player.x-=player.speed;
  }
 
  cartas.forEach(c=>{
-   if(!c.tomada && !cartaAbierta && t>=c.time && Math.abs(player.x-c.x)<30)
+   if(!c.tomada && !cartaAbierta && Math.abs(player.x-c.x)<30){
      cartaAbierta=c;
+   }
  });
 
  if(cartaAbierta && keys["Enter"]){
@@ -93,7 +95,9 @@ function update(){
    cartaAbierta=null;
  }
 
- if(t>60000) showMorella=true;
+ if(Math.abs(player.x-morellaX)<60 && !dialogoFinal && !abrazo){
+   player.speed=0;
+ }
 
  if(dialogoFinal && keys["Enter"]){
    dialogoFinal=false;
@@ -101,12 +105,28 @@ function update(){
  }
 
  if(abrazo){
-   if(player.x<1900) player.x+=1;
-   else camUp+=2;
-   if(camUp>canvas.height) corazonFinal=true;
+   if(player.x<morellaX-64) player.x+=1;
+   else finalActivo=true;
  }
 
- if(corazonFinal) setTimeout(()=>textoFinal=true,1000);
+ if(finalActivo){
+   camUp+=2;
+ }
+}
+
+// DIBUJOS EXTRA
+function drawCloud(x,y){
+ ctx.fillStyle="#fff";
+ ctx.fillRect(x,y,60,20);
+ ctx.fillRect(x+10,y-10,40,20);
+ ctx.fillRect(x+20,y-20,30,20);
+}
+
+function drawTree(x){
+ ctx.fillStyle="#b58b6a";
+ ctx.fillRect(x,groundY-50,20,50);
+ ctx.fillStyle="#a8d5ba";
+ ctx.fillRect(x-20,groundY-80,60,40);
 }
 
 // DRAW
@@ -122,13 +142,21 @@ function draw(){
  ctx.fillStyle=g;
  ctx.fillRect(0,-camUp,canvas.width,canvas.height*2);
 
+ // NUBES
+ for(let i=0;i<5;i++)
+   drawCloud(200+i*400-camX,100+i*20-camUp);
+
  // SUELO
  ctx.fillStyle="#7c9c6c";
  ctx.fillRect(0,groundY-camUp,canvas.width,100);
 
+ // ÁRBOLES
+ for(let i=0;i<6;i++)
+   drawTree(300+i*500-camX);
+
  // CARTAS
  cartas.forEach(c=>{
-   if(!c.tomada && Date.now()-startTime>=c.time){
+   if(!c.tomada){
      ctx.fillStyle=c.color;
      ctx.fillRect(c.x-camX,groundY-30-camUp,22,30);
    }
@@ -147,28 +175,25 @@ function draw(){
 
  // PERSONAJES
  ctx.drawImage(agustin,player.x-camX,player.y-camUp,64,64);
- if(showMorella)
-   ctx.drawImage(morella,1900-camX,player.y-camUp,64,64);
+ ctx.drawImage(morella,morellaX-camX,player.y-camUp,64,64);
 
  if(cartaAbierta) drawBox(cartaAbierta.texto);
 
  if(dialogoFinal)
    drawBox("¡¡Me encontraste!!\nGracias por buscarme, bancarme\ny elegirme durante estos 3 años\ny medio. Sos el mejor novio\ndel universo Agustin,\nte amo con el alma <3");
 
- // CORAZÓN FINAL
- if(corazonFinal){
+ // FINAL
+ if(camUp>canvas.height){
    ctx.fillStyle="#ff6f91";
    ctx.beginPath();
-   ctx.arc(canvas.width/2-60,canvas.height/2,60,0,Math.PI*2);
-   ctx.arc(canvas.width/2+60,canvas.height/2,60,0,Math.PI*2);
-   ctx.fillRect(canvas.width/2-120,canvas.height/2,240,120);
+   ctx.arc(canvas.width/2-70,canvas.height/2,70,0,Math.PI*2);
+   ctx.arc(canvas.width/2+70,canvas.height/2,70,0,Math.PI*2);
+   ctx.fillRect(canvas.width/2-140,canvas.height/2,280,140);
    ctx.fill();
 
-   if(textoFinal){
-     ctx.fillStyle="#fff";
-     ctx.font="32px Trebuchet MS";
-     ctx.fillText("Feliz San Valentín, te amo",canvas.width/2-220,canvas.height/2+40);
-   }
+   ctx.fillStyle="#fff";
+   ctx.font="30px Trebuchet MS";
+   ctx.fillText("Feliz San Valentín, te amo",canvas.width/2-200,canvas.height/2+40);
  }
 }
 
