@@ -6,28 +6,21 @@
 <style>
 body { margin:0; overflow:hidden; font-family:sans-serif; }
 canvas { display:block; }
-#dialog {
+
+#final {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.4);
+  background: rgba(255,200,220,0.85);
   display: none;
   align-items: center;
   justify-content: center;
-}
-#dialogBox {
-  background: white;
-  padding: 25px;
-  border-radius: 20px;
-  max-width: 420px;
   text-align: center;
 }
-#dialogBox button {
-  margin-top: 15px;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 10px;
-  background: pink;
-  cursor: pointer;
+#finalBox {
+  background: white;
+  padding: 30px;
+  border-radius: 25px;
+  max-width: 500px;
 }
 </style>
 </head>
@@ -35,18 +28,21 @@ canvas { display:block; }
 
 <canvas id="game"></canvas>
 
-<div id="dialog">
-  <div id="dialogBox">
-    <p id="dialogText"></p>
-    <button onclick="closeDialog()">Cerrar 💌</button>
+<div id="final">
+  <div id="finalBox">
+    <h2>Feliz San Valentín 💖</h2>
+    <p>
+      Gracias por caminar conmigo.<br>
+      Te amo hoy, mañana y siempre.<br><br>
+      💌
+    </p>
   </div>
 </div>
 
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-const dialog = document.getElementById("dialog");
-const dialogText = document.getElementById("dialogText");
+const finalScreen = document.getElementById("final");
 
 function resize(){
   canvas.width = window.innerWidth;
@@ -55,40 +51,18 @@ function resize(){
 resize();
 window.addEventListener("resize", resize);
 
-// =====================
-// CONTROLES
-// =====================
 const keys = {};
 window.addEventListener("keydown", e => keys[e.key]=true);
 window.addEventListener("keyup", e => keys[e.key]=false);
 
-// =====================
-// CÁMARA
-// =====================
 let cameraX = 0;
+let finished = false;
 
 // =====================
-// JUGADOR
+// PERSONAJES
 // =====================
-let player = {
-  x: 200,
-  speed: 4
-};
-
-// =====================
-// CARTAS
-// =====================
-const cards = [
-  { x: 600, text:"Hola mi amor, espero que disfrutes esta caminata :)", color:"#f7c1d9" },
-  { x: 900, text:"Ojalá no te empaches con los chocolates de hoy", color:"#f4d6a0" },
-  { x: 1200, text:"Sos el chico mas lindo hasta en formato 2D", color:"#c1d9f7" },
-  { x: 1500, text:"Se te acumulan los pajaritos, ya pensaste un nombre para cada uno?", color:"#d3c1f7" },
-  { x: 1800, text:"Apurate que te estoy esperando!!", color:"#c1f7d9" },
-  { x: 2100, text:"Ya casi me encontrás, besitoo", color:"#f7c1c1" }
-];
-
-let birds = [];
-let activeCard = null;
+let agustin = { x: 200, speed: 4 };
+let girl = { x: 2600 };
 
 // =====================
 // FONDO
@@ -112,10 +86,9 @@ function cloud(x,y,s){
 }
 
 function drawClouds(){
-  cloud(200-cameraX*0.3,120,1);
-  cloud(600-cameraX*0.3,200,1.2);
-  cloud(1000-cameraX*0.3,150,1);
-  cloud(1500-cameraX*0.3,220,1.4);
+  cloud(300-cameraX*0.3,150,1.2);
+  cloud(800-cameraX*0.3,220,1);
+  cloud(1400-cameraX*0.3,160,1.4);
 }
 
 function tree(x,y){
@@ -141,19 +114,19 @@ function drawGround(){
 }
 
 // =====================
-// PERSONAJE
+// DIBUJAR PERSONAJE
 // =====================
-function drawPlayer(){
+function drawPerson(x, hairColor, shirtColor){
   const y = canvas.height - 160;
   ctx.save();
-  ctx.translate(player.x-cameraX,y);
+  ctx.translate(x-cameraX,y);
 
   ctx.fillStyle="#ffe0cc";
   ctx.beginPath();
   ctx.arc(0,-28,14,0,Math.PI*2);
   ctx.fill();
 
-  ctx.fillStyle="#8b6a3e";
+  ctx.fillStyle="#000";
   ctx.beginPath();
   ctx.arc(-5,-30,2.5,0,Math.PI*2);
   ctx.arc(5,-30,2.5,0,Math.PI*2);
@@ -164,88 +137,17 @@ function drawPlayer(){
   ctx.arc(0,-25,6,0,Math.PI);
   ctx.stroke();
 
-  ctx.fillStyle="#a67c52";
+  ctx.fillStyle=hairColor;
   ctx.fillRect(-14,-45,28,12);
 
-  ctx.fillStyle="#7db9e8";
+  ctx.fillStyle=shirtColor;
   ctx.fillRect(-12,-10,24,22);
-  ctx.fillStyle="#f4e38a";
-  ctx.fillRect(-12,0,24,6);
 
   ctx.fillStyle="#555";
   ctx.fillRect(-8,12,6,18);
   ctx.fillRect(2,12,6,18);
 
   ctx.restore();
-}
-
-// =====================
-// CARTAS & PAJARITOS
-// =====================
-function drawCards(){
-  cards.forEach(c=>{
-    if(!c.collected){
-      ctx.fillStyle=c.color;
-      ctx.fillRect(c.x-cameraX,canvas.height-170,26,34);
-    }
-  });
-}
-
-function drawPaperBird(bird, index){
-  const flap = Math.sin(Date.now()/200 + index)*4;
-
-  ctx.save();
-  ctx.translate(bird.x-cameraX, canvas.height-230 + flap);
-
-  ctx.fillStyle = bird.color;
-
-  // ala izquierda
-  ctx.beginPath();
-  ctx.moveTo(0,0);
-  ctx.lineTo(-18,-8);
-  ctx.lineTo(-5,5);
-  ctx.closePath();
-  ctx.fill();
-
-  // ala derecha
-  ctx.beginPath();
-  ctx.moveTo(0,0);
-  ctx.lineTo(18,-8);
-  ctx.lineTo(5,5);
-  ctx.closePath();
-  ctx.fill();
-
-  // cuerpo
-  ctx.beginPath();
-  ctx.moveTo(0,0);
-  ctx.lineTo(5,10);
-  ctx.lineTo(-5,10);
-  ctx.closePath();
-  ctx.fill();
-
-  ctx.restore();
-}
-
-function drawBirds(){
-  birds.forEach((b,i)=>{
-    b.x += (player.x-40*i-b.x)*0.05;
-    drawPaperBird(b,i);
-  });
-}
-
-// =====================
-// DIÁLOGO
-// =====================
-function openDialog(card){
-  activeCard = card;
-  dialogText.innerText = card.text;
-  dialog.style.display="flex";
-}
-function closeDialog(){
-  dialog.style.display="none";
-  activeCard.collected=true;
-  birds.push({x:player.x,color:activeCard.color});
-  activeCard=null;
 }
 
 // =====================
@@ -257,20 +159,20 @@ function update(){
   drawTrees();
   drawGround();
 
-  if(keys["ArrowRight"]) player.x+=player.speed;
-  if(keys["ArrowLeft"]) player.x-=player.speed;
+  if(!finished){
+    if(keys["ArrowRight"]) agustin.x+=agustin.speed;
+    if(keys["ArrowLeft"]) agustin.x-=agustin.speed;
+  }
 
-  cameraX = player.x - canvas.width/3;
+  cameraX = agustin.x - canvas.width/3;
 
-  drawCards();
-  drawBirds();
-  drawPlayer();
+  drawPerson(girl.x,"#5a3b1e","#f7b7d2");   // ella
+  drawPerson(agustin.x,"#a67c52","#7db9e8"); // Agustín
 
-  cards.forEach(c=>{
-    if(!c.collected && Math.abs(player.x-c.x)<25){
-      openDialog(c);
-    }
-  });
+  if(agustin.x > 2450 && !finished){
+    finished = true;
+    setTimeout(()=> finalScreen.style.display="flex", 800);
+  }
 
   requestAnimationFrame(update);
 }
