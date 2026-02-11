@@ -20,17 +20,11 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 // IMÁGENES
-const agustin = new Image();
-agustin.src = "agustin.png";
+const agustin = new Image(); agustin.src = "agustin.png";
+const morella = new Image(); morella.src = "morella.png";
 
 // JUGADOR
-const player = {
-  x: 100,
-  w: 64,
-  h: 64,
-  speed: 4
-};
-
+const player = { x:100, w:64, h:64, speed:4 };
 const groundY = canvas.height - 100;
 player.y = groundY - player.h + 8;
 
@@ -39,147 +33,146 @@ const startTime = Date.now();
 
 // CARTAS
 const cartas = [
-  { x: 400,  color:"#ffd1dc", texto:"Hola mi amor,\nespero que disfrutes\nesta caminata :)", tomada:false, time:0 },
-  { x: 650,  color:"#d1e8ff", texto:"Ojalá no te empaches\ncon los chocolates\nde hoy", tomada:false, time:10000 },
-  { x: 900,  color:"#e8d1ff", texto:"Sos el chico más\nlindo hasta en\nformato 2D", tomada:false, time:20000 },
-  { x: 1150, color:"#d1ffe3", texto:"Se te acumulan\nlos pajaritos,\nya pensaste un nombre\npara cada uno?", tomada:false, time:30000 },
-  { x: 1400, color:"#fff3d1", texto:"Apurate que te\nestoy esperando!!", tomada:false, time:40000 },
-  { x: 1650, color:"#ffd1f0", texto:"Ya casi me encontrás,\nbesitoo", tomada:false, time:50000 }
+ {x:400,color:"#ffd1dc",texto:"Hola mi amor,\nespero que disfrutes\nesta caminata :)",time:0,tomada:false},
+ {x:650,color:"#d1e8ff",texto:"Ojalá no te empaches\ncon los chocolates\nde hoy",time:10000,tomada:false},
+ {x:900,color:"#e8d1ff",texto:"Sos el chico más\nlindo hasta en\nformato 2D",time:20000,tomada:false},
+ {x:1150,color:"#d1ffe3",texto:"Se te acumulan\nlos pajaritos,\nya pensaste un nombre\npara cada uno?",time:30000,tomada:false},
+ {x:1400,color:"#fff3d1",texto:"Apurate que te\nestoy esperando!!",time:40000,tomada:false},
+ {x:1650,color:"#ffd1f0",texto:"Ya casi me encontrás,\nbesitoo",time:50000,tomada:false}
 ];
 
-let cartaAbierta = null;
+let cartaAbierta=null;
+const pajaros=[];
 
-// PÁJAROS
-const pajaros = [];
+// FINAL
+let showMorella=false;
+let dialogoFinal=false;
+let abrazo=false;
+let camUp=0;
+let corazonFinal=false;
+let textoFinal=false;
 
 // INPUT
-const keys = {};
-window.addEventListener("keydown", e => keys[e.key] = true);
-window.addEventListener("keyup", e => keys[e.key] = false);
+const keys={};
+window.addEventListener("keydown",e=>keys[e.key]=true);
+window.addEventListener("keyup",e=>keys[e.key]=false);
+canvas.addEventListener("click",()=>{ if(showMorella) dialogoFinal=true; });
 
-// TEXTO MULTILÍNEA
-function drawTextBox(text, x, y, w, h) {
-  ctx.fillStyle="#fff";
-  ctx.fillRect(x,y,w,h);
-  ctx.strokeStyle="#e6b7d6";
-  ctx.strokeRect(x,y,w,h);
-
-  ctx.fillStyle="#444";
-  ctx.font="20px 'Trebuchet MS', sans-serif";
-  const lines = text.split("\n");
-  lines.forEach((l,i)=>{
-    ctx.fillText(l, x+20, y+50+i*28);
-  });
-
-  ctx.font="14px sans-serif";
-  ctx.fillText("ENTER para cerrar", x+20, y+h-20);
+// TEXTO
+function drawBox(text){
+ ctx.fillStyle="#fff";
+ ctx.fillRect(canvas.width/2-280,canvas.height/2-160,560,260);
+ ctx.strokeStyle="#e6b7d6";
+ ctx.strokeRect(canvas.width/2-280,canvas.height/2-160,560,260);
+ ctx.fillStyle="#444";
+ ctx.font="20px Trebuchet MS";
+ text.split("\n").forEach((l,i)=>{
+   ctx.fillText(l,canvas.width/2-250,canvas.height/2-60+i*28);
+ });
+ ctx.font="14px sans-serif";
+ ctx.fillText("ENTER para cerrar",canvas.width/2-250,canvas.height/2+80);
 }
 
 // UPDATE
-function update() {
-  const elapsed = Date.now() - startTime;
+function update(){
+ const t=Date.now()-startTime;
 
-  if (!cartaAbierta) {
-    if (keys["ArrowRight"]) player.x += player.speed;
-    if (keys["ArrowLeft"]) player.x -= player.speed;
-  }
+ if(!cartaAbierta && !dialogoFinal && !abrazo){
+   if(keys["ArrowRight"]) player.x+=player.speed;
+   if(keys["ArrowLeft"]) player.x-=player.speed;
+ }
 
-  cartas.forEach(c => {
-    if (!c.tomada && !cartaAbierta && elapsed >= c.time && Math.abs(player.x - c.x) < 30) {
-      cartaAbierta = c;
-    }
-  });
+ cartas.forEach(c=>{
+   if(!c.tomada && !cartaAbierta && t>=c.time && Math.abs(player.x-c.x)<30)
+     cartaAbierta=c;
+ });
 
-  if (cartaAbierta && keys["Enter"]) {
-    cartaAbierta.tomada = true;
-    pajaros.push({
-      color:cartaAbierta.color,
-      offsetX:Math.random()*40,
-      offsetY:-70-Math.random()*20,
-      flap:Math.random()*10
-    });
-    cartaAbierta = null;
-  }
+ if(cartaAbierta && keys["Enter"]){
+   cartaAbierta.tomada=true;
+   pajaros.push({color:cartaAbierta.color});
+   cartaAbierta=null;
+ }
 
-  pajaros.forEach(p=>p.flap+=0.08);
+ if(t>60000) showMorella=true;
+
+ if(dialogoFinal && keys["Enter"]){
+   dialogoFinal=false;
+   abrazo=true;
+ }
+
+ if(abrazo){
+   if(player.x<1900) player.x+=1;
+   else camUp+=2;
+   if(camUp>canvas.height) corazonFinal=true;
+ }
+
+ if(corazonFinal) setTimeout(()=>textoFinal=true,1000);
 }
 
 // DRAW
-function draw() {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  const camX = Math.max(player.x - 200, 0);
+function draw(){
+ ctx.clearRect(0,0,canvas.width,canvas.height);
+ const camX=Math.max(player.x-200,0);
 
-  // CIELO DEGRADADO
-  const grad = ctx.createLinearGradient(0,0,0,canvas.height);
-  grad.addColorStop(0,"#f6b1c3");
-  grad.addColorStop(0.5,"#d6c1f0");
-  grad.addColorStop(1,"#9fd3ff");
-  ctx.fillStyle=grad;
-  ctx.fillRect(0,0,canvas.width,canvas.height);
+ // CIELO
+ const g=ctx.createLinearGradient(0,0,0,canvas.height);
+ g.addColorStop(0,"#f6b1c3");
+ g.addColorStop(.5,"#d6c1f0");
+ g.addColorStop(1,"#9fd3ff");
+ ctx.fillStyle=g;
+ ctx.fillRect(0,-camUp,canvas.width,canvas.height*2);
 
-  // NUBES
-  ctx.fillStyle="#fff";
-  for(let i=0;i<5;i++){
-    const x = i*350 - camX*0.3;
-    ctx.fillRect(x,100,80,30);
-    ctx.fillRect(x+20,80,60,30);
-  }
+ // SUELO
+ ctx.fillStyle="#7c9c6c";
+ ctx.fillRect(0,groundY-camUp,canvas.width,100);
 
-  // ÁRBOLES
-  for(let i=0;i<8;i++){
-    const x=i*300-camX;
-    ctx.fillStyle="#b08968";
-    ctx.fillRect(x,groundY-60,20,60);
-    ctx.fillStyle="#a3d9a5";
-    ctx.fillRect(x-20,groundY-100,60,40);
-  }
+ // CARTAS
+ cartas.forEach(c=>{
+   if(!c.tomada && Date.now()-startTime>=c.time){
+     ctx.fillStyle=c.color;
+     ctx.fillRect(c.x-camX,groundY-30-camUp,22,30);
+   }
+ });
 
-  // SUELO
-  ctx.fillStyle="#7c9c6c";
-  ctx.fillRect(0,groundY,canvas.width,100);
+ // PÁJAROS
+ pajaros.forEach((p,i)=>{
+   ctx.fillStyle=p.color;
+   ctx.beginPath();
+   ctx.moveTo(200+i*40,300-camUp);
+   ctx.lineTo(212+i*40,306-camUp);
+   ctx.lineTo(224+i*40,300-camUp);
+   ctx.lineTo(212+i*40,312-camUp);
+   ctx.fill();
+ });
 
-  // CARTAS
-  cartas.forEach(c=>{
-    if(!c.tomada && Date.now()-startTime>=c.time){
-      ctx.fillStyle=c.color;
-      ctx.fillRect(c.x-camX,groundY-30,22,30);
-    }
-  });
+ // PERSONAJES
+ ctx.drawImage(agustin,player.x-camX,player.y-camUp,64,64);
+ if(showMorella)
+   ctx.drawImage(morella,1900-camX,player.y-camUp,64,64);
 
-  // PÁJAROS ORIGAMI
-  pajaros.forEach((p,i)=>{
-    const x=player.x-camX+p.offsetX+i*14;
-    const y=player.y+p.offsetY+Math.sin(p.flap)*5;
-    ctx.fillStyle=p.color;
-    ctx.beginPath();
-    ctx.moveTo(x,y);
-    ctx.lineTo(x+12,y+6);
-    ctx.lineTo(x+24,y);
-    ctx.lineTo(x+12,y+12);
-    ctx.fill();
-  });
+ if(cartaAbierta) drawBox(cartaAbierta.texto);
 
-  // JUGADOR
-  ctx.drawImage(agustin,player.x-camX,player.y,player.w,player.h);
+ if(dialogoFinal)
+   drawBox("¡¡Me encontraste!!\nGracias por buscarme, bancarme\ny elegirme durante estos 3 años\ny medio. Sos el mejor novio\ndel universo Agustin,\nte amo con el alma <3");
 
-  // CARTA ABIERTA
-  if(cartaAbierta){
-    drawTextBox(
-      cartaAbierta.texto,
-      canvas.width/2-260,
-      canvas.height/2-140,
-      520,
-      260
-    );
-  }
+ // CORAZÓN FINAL
+ if(corazonFinal){
+   ctx.fillStyle="#ff6f91";
+   ctx.beginPath();
+   ctx.arc(canvas.width/2-60,canvas.height/2,60,0,Math.PI*2);
+   ctx.arc(canvas.width/2+60,canvas.height/2,60,0,Math.PI*2);
+   ctx.fillRect(canvas.width/2-120,canvas.height/2,240,120);
+   ctx.fill();
+
+   if(textoFinal){
+     ctx.fillStyle="#fff";
+     ctx.font="32px Trebuchet MS";
+     ctx.fillText("Feliz San Valentín, te amo",canvas.width/2-220,canvas.height/2+40);
+   }
+ }
 }
 
-// LOOP
-function loop(){
-  update();
-  draw();
-  requestAnimationFrame(loop);
-}
+function loop(){ update(); draw(); requestAnimationFrame(loop); }
 loop();
 </script>
 
