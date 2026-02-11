@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>Caminata para Agustín</title>
 <style>
-  body { margin: 0; overflow: hidden; background:#87cfff; }
+  body { margin:0; overflow:hidden; background:#87cfff; }
   canvas { display:block; image-rendering: pixelated; }
 </style>
 </head>
@@ -36,7 +36,7 @@ const player = {
 };
 
 const groundY = canvas.height - 100;
-player.y = groundY - player.h;
+player.y = groundY - player.h + 6;
 
 // CARTAS
 const cartas = [
@@ -46,6 +46,9 @@ const cartas = [
 ];
 
 let cartaActiva = null;
+
+// PÁJAROS
+const pajaros = [];
 
 // INPUT
 const keys = {};
@@ -60,15 +63,24 @@ function update() {
   cartas.forEach(c => {
     if (!c.tomada && Math.abs(player.x - c.x) < 40) {
       cartaActiva = c;
-      if (keys["Enter"]) c.tomada = true;
+      if (keys["Enter"]) {
+        c.tomada = true;
+        pajaros.push({
+          offsetX: Math.random()*40,
+          offsetY: -60 - Math.random()*30,
+          flap: Math.random()*10
+        });
+        cartaActiva = null;
+      }
     }
   });
+
+  pajaros.forEach(p => p.flap += 0.1);
 }
 
 // DRAW
 function draw() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
-
   const camX = Math.max(player.x - 200, 0);
 
   // cielo
@@ -99,13 +111,26 @@ function draw() {
     }
   });
 
+  // pajaros
+  pajaros.forEach((p,i)=>{
+    const x = player.x - camX + p.offsetX + i*12;
+    const y = player.y + p.offsetY + Math.sin(p.flap)*5;
+
+    ctx.fillStyle="#fff";
+    ctx.beginPath();
+    ctx.moveTo(x,y);
+    ctx.lineTo(x+10,y+5);
+    ctx.lineTo(x,y+10);
+    ctx.fill();
+  });
+
   // jugador
   ctx.drawImage(agustin, player.x - camX, player.y, player.w, player.h);
 
   // carta abierta
   if (cartaActiva && !cartaActiva.tomada) {
     ctx.fillStyle="#fff";
-    ctx.fillRect(50,50,400,120);
+    ctx.fillRect(50,50,420,120);
     ctx.fillStyle="#000";
     ctx.font="20px monospace";
     ctx.fillText(cartaActiva.texto, 70,120);
