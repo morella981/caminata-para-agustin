@@ -7,7 +7,6 @@
   body {
     margin: 0;
     overflow: hidden;
-    background: #000;
   }
   canvas {
     display: block;
@@ -29,26 +28,28 @@ function resize() {
 resize();
 window.addEventListener("resize", resize);
 
-let camY = 0;
+// =====================
+// JUGADOR
+// =====================
+let player = {
+  x: 100,
+  y: 0,
+  speed: 2
+};
 
-/* =====================
-   FONDO CIELO
-===================== */
+// =====================
+// FONDO
+// =====================
 function drawSky() {
-  const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  grad.addColorStop(0, "#f7b7d2");   // rosa
-  grad.addColorStop(0.4, "#d6b4f0"); // lila
-  grad.addColorStop(0.8, "#a8c7e8"); // azul suave
-  grad.addColorStop(1, "#dff1ff");   // casi blanco
-
-  ctx.fillStyle = grad;
+  const g = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  g.addColorStop(0, "#f7b7d2");
+  g.addColorStop(0.5, "#d6b4f0");
+  g.addColorStop(1, "#a8c7e8");
+  ctx.fillStyle = g;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
-/* =====================
-   NUBES
-===================== */
-function drawCloud(x, y, s) {
+function cloud(x, y, s) {
   ctx.fillStyle = "rgba(255,255,255,0.85)";
   ctx.beginPath();
   ctx.arc(x, y, 30*s, 0, Math.PI*2);
@@ -57,110 +58,68 @@ function drawCloud(x, y, s) {
   ctx.fill();
 }
 
-function clouds() {
-  drawCloud(200, 120, 1);
-  drawCloud(600, 200, 1.3);
-  drawCloud(1000, 150, 1);
-  drawCloud(1400, 220, 1.4);
+function drawClouds() {
+  cloud(150,120,1);
+  cloud(500,200,1.2);
+  cloud(900,150,1);
+  cloud(1300,220,1.4);
 }
 
-/* =====================
-   ÁRBOLES
-===================== */
-function tree(x, y) {
-  ctx.fillStyle = "#8b6f4e";
-  ctx.fillRect(x-5, y, 10, 40);
-
-  ctx.fillStyle = "#a6d8b5";
-  ctx.beginPath();
-  ctx.arc(x, y, 25, 0, Math.PI*2);
-  ctx.fill();
-}
-
-function trees() {
-  for (let i = 0; i < 10; i++) {
-    tree(i*180 + 100, canvas.height-170-camY);
-  }
-}
-
-/* =====================
-   SUELO
-===================== */
-function ground() {
+function drawGround() {
   ctx.fillStyle = "#b9e3c6";
-  ctx.fillRect(0, canvas.height-120-camY, canvas.width, 120);
-
+  ctx.fillRect(0, canvas.height-120, canvas.width, 120);
   ctx.fillStyle = "#c9a46a";
-  ctx.fillRect(0, canvas.height-70-camY, canvas.width, 70);
+  ctx.fillRect(0, canvas.height-60, canvas.width, 60);
 }
 
-/* =====================
-   LOOP
-===================== */
-function update() {
-  drawSky();
-  clouds();
-  trees();
-  ground();
-
 // =====================
-// JUGADOR (AGUSTÍN)
+// PERSONAJE
 // =====================
-let player = {
-  x: 100,
-  y: canvas.height - 150,
-  vx: 2
-};
-
 function drawPlayer() {
+  const yBase = canvas.height - 140;
+
   ctx.save();
-  ctx.translate(player.x, player.y - camY);
+  ctx.translate(player.x, yBase);
 
   // cabeza
   ctx.fillStyle = "#ffe0cc";
   ctx.beginPath();
-  ctx.arc(0, -20, 12, 0, Math.PI * 2);
+  ctx.arc(0, -25, 14, 0, Math.PI*2);
   ctx.fill();
 
   // pelo
   ctx.fillStyle = "#a67c52";
-  ctx.fillRect(-12, -35, 24, 10);
+  ctx.fillRect(-14, -40, 28, 12);
 
-  // remera rayada (azul y amarillo)
+  // cuerpo (remera rayada)
   ctx.fillStyle = "#7db9e8";
-  ctx.fillRect(-10, -5, 20, 20);
+  ctx.fillRect(-12, -10, 24, 22);
   ctx.fillStyle = "#f4e38a";
-  ctx.fillRect(-10, 5, 20, 5);
+  ctx.fillRect(-12, 0, 24, 6);
 
   // piernas
   ctx.fillStyle = "#555";
-  ctx.fillRect(-8, 15, 6, 15);
-  ctx.fillRect(2, 15, 6, 15);
+  ctx.fillRect(-8, 12, 6, 16);
+  ctx.fillRect(2, 12, 6, 16);
 
   ctx.restore();
 }
 
-  
-  requestAnimationFrame(update);
-}
-
+// =====================
+// LOOP
+// =====================
 function update() {
   drawSky();
-  clouds();
-  trees();
-  ground();
+  drawClouds();
+  drawGround();
 
-  // movimiento automático
-  player.x += player.vx;
-
-  // cámara sigue al jugador
-  camY = 0;
-
+  player.x += player.speed;
   drawPlayer();
 
   requestAnimationFrame(update);
 }
 
+update();
 </script>
 
 </body>
