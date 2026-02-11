@@ -97,7 +97,7 @@ function update(){
    cartaAbierta=null;
  }
 
- // Movimiento fluido de pajaros (follow con delay)
+ // Movimiento fluido de pajaros
  pajaros.forEach((p,i)=>{
    const targetX = i===0 ? player.x-25 : pajaros[i-1].x-18;
    const targetY = player.y + 10;
@@ -150,7 +150,7 @@ function draw(){
  g.addColorStop(.5,"#d6c1f0");
  g.addColorStop(1,"#9fd3ff");
  ctx.fillStyle=g;
- ctx.fillRect(0,camY,canvas.width,canvas.height*2);
+ ctx.fillRect(0,camY - canvas.height,canvas.width,canvas.height*3);
 
  // NUBES
  for(let i=0;i<5;i++)
@@ -192,17 +192,14 @@ function draw(){
  if(dialogoFinal)
    drawBox("¡¡Me encontraste!!\nGracias por buscarme, bancarme\ny elegirme durante estos 3 años\ny medio. Sos el mejor novio\ndel universo Agustin,\nte amo con el alma <3");
 
- // FINAL
-if(camY > canvas.height){
-  ctx.drawImage(
-    corazonImg,
-    canvas.width/2 - canvas.width*0.4,
-    canvas.height/2 - canvas.height*0.4,
-    canvas.width*0.8,
-    canvas.height*0.8
-  );
-}
-
+ // FINAL: SOLO CORAZÓN
+ if(camY > canvas.height){
+   ctx.drawImage(
+     corazonImg,
+     canvas.width/2 - canvas.width*0.45,
+     canvas.height/2 - canvas.height*0.45,
+     canvas.width*0.9,
+     canvas.height*0.9
    );
  }
 }
