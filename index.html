@@ -4,179 +4,172 @@
 <meta charset="UTF-8">
 <title>Caminata para Agustín 💙</title>
 <style>
-body { margin:0; overflow:hidden; font-family:sans-serif; }
+body { margin:0; overflow:hidden; }
 canvas { display:block; }
-
-#final {
-  position: fixed;
-  inset: 0;
-  background: rgba(255,200,220,0.85);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-#finalBox {
-  background: white;
-  padding: 30px;
-  border-radius: 25px;
-  max-width: 500px;
-}
 </style>
 </head>
 <body>
 
 <canvas id="game"></canvas>
 
-<div id="final">
-  <div id="finalBox">
-    <h2>Feliz San Valentín 💖</h2>
-    <p>
-      Gracias por caminar conmigo.<br>
-      Te amo hoy, mañana y siempre.<br><br>
-      💌
-    </p>
-  </div>
-</div>
-
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-const finalScreen = document.getElementById("final");
 
 function resize(){
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
 }
 resize();
-window.addEventListener("resize", resize);
+addEventListener("resize", resize);
 
 const keys = {};
-window.addEventListener("keydown", e => keys[e.key]=true);
-window.addEventListener("keyup", e => keys[e.key]=false);
+addEventListener("keydown", e => keys[e.key]=true);
+addEventListener("keyup", e => keys[e.key]=false);
 
 let cameraX = 0;
-let finished = false;
 
-// =====================
-// PERSONAJES
-// =====================
-let agustin = { x: 200, speed: 4 };
-let girl = { x: 2600 };
-
-// =====================
-// FONDO
-// =====================
+// ================= FONDO =================
 function drawSky(){
   const g = ctx.createLinearGradient(0,0,0,canvas.height);
-  g.addColorStop(0,"#f7b7d2");
-  g.addColorStop(0.5,"#d6b4f0");
-  g.addColorStop(1,"#a8c7e8");
-  ctx.fillStyle=g;
+  g.addColorStop(0,"#f6b3d8");
+  g.addColorStop(0.5,"#d6b8f0");
+  g.addColorStop(1,"#a8c9ec");
+  ctx.fillStyle = g;
   ctx.fillRect(0,0,canvas.width,canvas.height);
 }
 
-function cloud(x,y,s){
-  ctx.fillStyle="rgba(255,255,255,0.85)";
-  ctx.beginPath();
-  ctx.arc(x,y,30*s,0,Math.PI*2);
-  ctx.arc(x+30*s,y-10*s,35*s,0,Math.PI*2);
-  ctx.arc(x+70*s,y,30*s,0,Math.PI*2);
-  ctx.fill();
-}
-
-function drawClouds(){
-  cloud(300-cameraX*0.3,150,1.2);
-  cloud(800-cameraX*0.3,220,1);
-  cloud(1400-cameraX*0.3,160,1.4);
-}
-
-function tree(x,y){
-  ctx.fillStyle="#8b6f4e";
-  ctx.fillRect(x-5,y,10,40);
-  ctx.fillStyle="#a6d8b5";
-  ctx.beginPath();
-  ctx.arc(x,y,25,0,Math.PI*2);
-  ctx.fill();
-}
-
-function drawTrees(){
-  for(let i=0;i<20;i++){
-    tree(i*250-cameraX*0.6, canvas.height-180);
-  }
-}
-
 function drawGround(){
-  ctx.fillStyle="#b9e3c6";
-  ctx.fillRect(-cameraX,canvas.height-140,5000,140);
-  ctx.fillStyle="#c9a46a";
-  ctx.fillRect(-cameraX,canvas.height-70,5000,70);
+  ctx.fillStyle="#bfe3c0";
+  ctx.fillRect(-cameraX,canvas.height-140,4000,140);
+  ctx.fillStyle="#caa26a";
+  ctx.fillRect(-cameraX,canvas.height-70,4000,70);
 }
 
-// =====================
-// DIBUJAR PERSONAJE
-// =====================
-function drawPerson(x, hairColor, shirtColor){
+// ================= PERSONAJES =================
+function drawAgustin(x){
   const y = canvas.height - 160;
   ctx.save();
   ctx.translate(x-cameraX,y);
 
-  ctx.fillStyle="#ffe0cc";
+  // cabeza
+  ctx.fillStyle="#ffe3cf";
   ctx.beginPath();
-  ctx.arc(0,-28,14,0,Math.PI*2);
+  ctx.arc(0,-32,16,0,Math.PI*2);
   ctx.fill();
 
-  ctx.fillStyle="#000";
+  // ojos miel
+  ctx.fillStyle="#a97c3c";
   ctx.beginPath();
-  ctx.arc(-5,-30,2.5,0,Math.PI*2);
-  ctx.arc(5,-30,2.5,0,Math.PI*2);
+  ctx.arc(-5,-34,2.5,0,Math.PI*2);
+  ctx.arc(5,-34,2.5,0,Math.PI*2);
   ctx.fill();
 
-  ctx.strokeStyle="#a05a4a";
+  // sonrisa
+  ctx.strokeStyle="#b05c4a";
   ctx.beginPath();
-  ctx.arc(0,-25,6,0,Math.PI);
+  ctx.arc(0,-28,6,0,Math.PI);
   ctx.stroke();
 
-  ctx.fillStyle=hairColor;
-  ctx.fillRect(-14,-45,28,12);
+  // pelo despeinado
+  ctx.fillStyle="#a6784d";
+  ctx.beginPath();
+  ctx.moveTo(-18,-45);
+  ctx.lineTo(18,-45);
+  ctx.lineTo(12,-30);
+  ctx.lineTo(0,-38);
+  ctx.lineTo(-10,-30);
+  ctx.closePath();
+  ctx.fill();
 
-  ctx.fillStyle=shirtColor;
-  ctx.fillRect(-12,-10,24,22);
+  // torso rayado azul/amarillo
+  ctx.fillStyle="#7fb8e8";
+  ctx.fillRect(-14,-10,28,22);
+  ctx.fillStyle="#f4e06d";
+  ctx.fillRect(-14,-10,28,4);
+  ctx.fillRect(-14,-2,28,4);
+  ctx.fillRect(-14,6,28,4);
 
+  // brazos
+  ctx.fillStyle="#ffe3cf";
+  ctx.fillRect(-20,-8,6,18);
+  ctx.fillRect(14,-8,6,18);
+
+  // piernas
   ctx.fillStyle="#555";
-  ctx.fillRect(-8,12,6,18);
-  ctx.fillRect(2,12,6,18);
+  ctx.fillRect(-8,12,6,20);
+  ctx.fillRect(2,12,6,20);
 
   ctx.restore();
 }
 
-// =====================
-// LOOP
-// =====================
-function update(){
+function drawYou(x){
+  const y = canvas.height - 160;
+  ctx.save();
+  ctx.translate(x-cameraX,y);
+
+  // cabeza
+  ctx.fillStyle="#ffe3cf";
+  ctx.beginPath();
+  ctx.arc(0,-32,16,0,Math.PI*2);
+  ctx.fill();
+
+  // ojos verdes
+  ctx.fillStyle="#6bbf9a";
+  ctx.beginPath();
+  ctx.arc(-5,-34,2.5,0,Math.PI*2);
+  ctx.arc(5,-34,2.5,0,Math.PI*2);
+  ctx.fill();
+
+  // sonrisa
+  ctx.strokeStyle="#b05c4a";
+  ctx.beginPath();
+  ctx.arc(0,-28,6,0,Math.PI);
+  ctx.stroke();
+
+  // pelo largo rubio
+  ctx.fillStyle="#f3d27a";
+  ctx.beginPath();
+  ctx.arc(0,-38,18,Math.PI,0);
+  ctx.fill();
+  ctx.fillRect(-18,-38,36,30);
+
+  // vestido pastel
+  ctx.fillStyle="#f6b3d8";
+  ctx.fillRect(-12,-10,24,26);
+
+  // brazos
+  ctx.fillStyle="#ffe3cf";
+  ctx.fillRect(-20,-8,6,18);
+  ctx.fillRect(14,-8,6,18);
+
+  // piernas
+  ctx.fillStyle="#555";
+  ctx.fillRect(-6,16,5,18);
+  ctx.fillRect(1,16,5,18);
+
+  ctx.restore();
+}
+
+// ================= JUEGO =================
+let agustin = { x: 200, speed: 4 };
+let you = { x: 1600 };
+
+function loop(){
   drawSky();
-  drawClouds();
-  drawTrees();
   drawGround();
 
-  if(!finished){
-    if(keys["ArrowRight"]) agustin.x+=agustin.speed;
-    if(keys["ArrowLeft"]) agustin.x-=agustin.speed;
-  }
+  if(keys["ArrowRight"]) agustin.x += agustin.speed;
+  if(keys["ArrowLeft"]) agustin.x -= agustin.speed;
 
   cameraX = agustin.x - canvas.width/3;
 
-  drawPerson(girl.x,"#5a3b1e","#f7b7d2");   // ella
-  drawPerson(agustin.x,"#a67c52","#7db9e8"); // Agustín
+  drawYou(you.x);
+  drawAgustin(agustin.x);
 
-  if(agustin.x > 2450 && !finished){
-    finished = true;
-    setTimeout(()=> finalScreen.style.display="flex", 800);
-  }
-
-  requestAnimationFrame(update);
+  requestAnimationFrame(loop);
 }
-update();
+loop();
 </script>
 
 </body>
