@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>Caminata para Agustín</title>
 <style>
-  body { margin:0; overflow:hidden; background:#87cfff; }
+  body { margin:0; overflow:hidden; background:#000; }
   canvas { display:block; image-rendering: pixelated; }
 </style>
 </head>
@@ -34,14 +34,17 @@ const player = {
 const groundY = canvas.height - 100;
 player.y = groundY - player.h + 8;
 
-// CARTAS (TUS FRASES)
+// TIEMPO
+const startTime = Date.now();
+
+// CARTAS
 const cartas = [
-  { x: 400, color:"#ffd1dc", texto:"Hola mi amor, espero que disfrutes esta caminata :)", tomada:false },
-  { x: 650, color:"#d1e8ff", texto:"Ojalá no te empaches con los chocolates de hoy", tomada:false },
-  { x: 900, color:"#e8d1ff", texto:"Sos el chico más lindo hasta en formato 2D", tomada:false },
-  { x: 1150, color:"#d1ffe3", texto:"Se te acumulan los pajaritos, ya pensaste un nombre para cada uno?", tomada:false },
-  { x: 1400, color:"#fff3d1", texto:"Apurate que te estoy esperando!!", tomada:false },
-  { x: 1650, color:"#ffd1f0", texto:"Ya casi me encontrás, besitoo", tomada:false }
+  { x: 400,  color:"#ffd1dc", texto:"Hola mi amor,\nespero que disfrutes\nesta caminata :)", tomada:false, time:0 },
+  { x: 650,  color:"#d1e8ff", texto:"Ojalá no te empaches\ncon los chocolates\nde hoy", tomada:false, time:10000 },
+  { x: 900,  color:"#e8d1ff", texto:"Sos el chico más\nlindo hasta en\nformato 2D", tomada:false, time:20000 },
+  { x: 1150, color:"#d1ffe3", texto:"Se te acumulan\nlos pajaritos,\nya pensaste un nombre\npara cada uno?", tomada:false, time:30000 },
+  { x: 1400, color:"#fff3d1", texto:"Apurate que te\nestoy esperando!!", tomada:false, time:40000 },
+  { x: 1650, color:"#ffd1f0", texto:"Ya casi me encontrás,\nbesitoo", tomada:false, time:50000 }
 ];
 
 let cartaAbierta = null;
@@ -54,32 +57,51 @@ const keys = {};
 window.addEventListener("keydown", e => keys[e.key] = true);
 window.addEventListener("keyup", e => keys[e.key] = false);
 
+// TEXTO MULTILÍNEA
+function drawTextBox(text, x, y, w, h) {
+  ctx.fillStyle="#fff";
+  ctx.fillRect(x,y,w,h);
+  ctx.strokeStyle="#e6b7d6";
+  ctx.strokeRect(x,y,w,h);
+
+  ctx.fillStyle="#444";
+  ctx.font="20px 'Trebuchet MS', sans-serif";
+  const lines = text.split("\n");
+  lines.forEach((l,i)=>{
+    ctx.fillText(l, x+20, y+50+i*28);
+  });
+
+  ctx.font="14px sans-serif";
+  ctx.fillText("ENTER para cerrar", x+20, y+h-20);
+}
+
 // UPDATE
 function update() {
+  const elapsed = Date.now() - startTime;
+
   if (!cartaAbierta) {
     if (keys["ArrowRight"]) player.x += player.speed;
     if (keys["ArrowLeft"]) player.x -= player.speed;
   }
 
   cartas.forEach(c => {
-    if (!c.tomada && !cartaAbierta && Math.abs(player.x - c.x) < 30) {
+    if (!c.tomada && !cartaAbierta && elapsed >= c.time && Math.abs(player.x - c.x) < 30) {
       cartaAbierta = c;
     }
   });
 
-  // cerrar carta
   if (cartaAbierta && keys["Enter"]) {
     cartaAbierta.tomada = true;
     pajaros.push({
-      color: cartaAbierta.color,
-      offsetX: Math.random()*40,
-      offsetY: -60 - Math.random()*30,
-      flap: Math.random()*10
+      color:cartaAbierta.color,
+      offsetX:Math.random()*40,
+      offsetY:-70-Math.random()*20,
+      flap:Math.random()*10
     });
     cartaAbierta = null;
   }
 
-  pajaros.forEach(p => p.flap += 0.1);
+  pajaros.forEach(p=>p.flap+=0.08);
 }
 
 // DRAW
@@ -87,60 +109,68 @@ function draw() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
   const camX = Math.max(player.x - 200, 0);
 
-  // cielo
-  ctx.fillStyle="#87cfff";
+  // CIELO DEGRADADO
+  const grad = ctx.createLinearGradient(0,0,0,canvas.height);
+  grad.addColorStop(0,"#f6b1c3");
+  grad.addColorStop(0.5,"#d6c1f0");
+  grad.addColorStop(1,"#9fd3ff");
+  ctx.fillStyle=grad;
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  // nubes
+  // NUBES
   ctx.fillStyle="#fff";
-  for(let i=0;i<6;i++){
-    ctx.fillRect(i*300 - camX*0.3, 80, 120, 40);
+  for(let i=0;i<5;i++){
+    const x = i*350 - camX*0.3;
+    ctx.fillRect(x,100,80,30);
+    ctx.fillRect(x+20,80,60,30);
   }
 
-  // árboles
-  for(let i=0;i<40;i++){
-    ctx.fillStyle="#2f7d32";
-    ctx.fillRect(i*80 - camX, groundY-120, 40, 120);
+  // ÁRBOLES
+  for(let i=0;i<8;i++){
+    const x=i*300-camX;
+    ctx.fillStyle="#b08968";
+    ctx.fillRect(x,groundY-60,20,60);
+    ctx.fillStyle="#a3d9a5";
+    ctx.fillRect(x-20,groundY-100,60,40);
   }
 
-  // suelo
-  ctx.fillStyle="#5b3a1e";
-  ctx.fillRect(0, groundY, canvas.width, 100);
+  // SUELO
+  ctx.fillStyle="#7c9c6c";
+  ctx.fillRect(0,groundY,canvas.width,100);
 
-  // cartas
+  // CARTAS
   cartas.forEach(c=>{
-    if(!c.tomada){
+    if(!c.tomada && Date.now()-startTime>=c.time){
       ctx.fillStyle=c.color;
-      ctx.fillRect(c.x - camX, groundY - 30, 22, 30);
+      ctx.fillRect(c.x-camX,groundY-30,22,30);
     }
   });
 
-  // pajaros
+  // PÁJAROS ORIGAMI
   pajaros.forEach((p,i)=>{
-    const x = player.x - camX + p.offsetX + i*14;
-    const y = player.y + p.offsetY + Math.sin(p.flap)*6;
+    const x=player.x-camX+p.offsetX+i*14;
+    const y=player.y+p.offsetY+Math.sin(p.flap)*5;
     ctx.fillStyle=p.color;
     ctx.beginPath();
     ctx.moveTo(x,y);
     ctx.lineTo(x+12,y+6);
-    ctx.lineTo(x,y+12);
+    ctx.lineTo(x+24,y);
+    ctx.lineTo(x+12,y+12);
     ctx.fill();
   });
 
-  // jugador
-  ctx.drawImage(agustin, player.x - camX, player.y, player.w, player.h);
+  // JUGADOR
+  ctx.drawImage(agustin,player.x-camX,player.y,player.w,player.h);
 
-  // carta abierta (overlay)
-  if (cartaAbierta) {
-    ctx.fillStyle="#fff";
-    ctx.fillRect(canvas.width/2 - 250, canvas.height/2 - 100, 500, 200);
-    ctx.strokeRect(canvas.width/2 - 250, canvas.height/2 - 100, 500, 200);
-
-    ctx.fillStyle="#000";
-    ctx.font="20px monospace";
-    ctx.fillText(cartaAbierta.texto, canvas.width/2 - 220, canvas.height/2);
-    ctx.font="14px monospace";
-    ctx.fillText("Presioná ENTER para cerrar", canvas.width/2 - 220, canvas.height/2 + 40);
+  // CARTA ABIERTA
+  if(cartaAbierta){
+    drawTextBox(
+      cartaAbierta.texto,
+      canvas.width/2-260,
+      canvas.height/2-140,
+      520,
+      260
+    );
   }
 }
 
