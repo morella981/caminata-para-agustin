@@ -86,6 +86,7 @@ const cards = [
   { x: 1800, text:"Apurate que te estoy esperando!!", color:"#c1f7d9" },
   { x: 2100, text:"Ya casi me encontrás, besitoo", color:"#f7c1c1" }
 ];
+
 let birds = [];
 let activeCard = null;
 
@@ -140,7 +141,7 @@ function drawGround(){
 }
 
 // =====================
-// DIBUJOS
+// PERSONAJE
 // =====================
 function drawPlayer(){
   const y = canvas.height - 160;
@@ -178,6 +179,9 @@ function drawPlayer(){
   ctx.restore();
 }
 
+// =====================
+// CARTAS & PAJARITOS
+// =====================
 function drawCards(){
   cards.forEach(c=>{
     if(!c.collected){
@@ -187,15 +191,45 @@ function drawCards(){
   });
 }
 
+function drawPaperBird(bird, index){
+  const flap = Math.sin(Date.now()/200 + index)*4;
+
+  ctx.save();
+  ctx.translate(bird.x-cameraX, canvas.height-230 + flap);
+
+  ctx.fillStyle = bird.color;
+
+  // ala izquierda
+  ctx.beginPath();
+  ctx.moveTo(0,0);
+  ctx.lineTo(-18,-8);
+  ctx.lineTo(-5,5);
+  ctx.closePath();
+  ctx.fill();
+
+  // ala derecha
+  ctx.beginPath();
+  ctx.moveTo(0,0);
+  ctx.lineTo(18,-8);
+  ctx.lineTo(5,5);
+  ctx.closePath();
+  ctx.fill();
+
+  // cuerpo
+  ctx.beginPath();
+  ctx.moveTo(0,0);
+  ctx.lineTo(5,10);
+  ctx.lineTo(-5,10);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
+}
+
 function drawBirds(){
   birds.forEach((b,i)=>{
     b.x += (player.x-40*i-b.x)*0.05;
-    ctx.fillStyle=b.color;
-    ctx.beginPath();
-    ctx.moveTo(b.x-cameraX,canvas.height-220);
-    ctx.lineTo(b.x+10-cameraX,canvas.height-210);
-    ctx.lineTo(b.x-cameraX,canvas.height-200);
-    ctx.fill();
+    drawPaperBird(b,i);
   });
 }
 
