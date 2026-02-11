@@ -4,13 +4,8 @@
 <meta charset="UTF-8">
 <title>Caminata para Agustín 💙</title>
 <style>
-  body {
-    margin: 0;
-    overflow: hidden;
-  }
-  canvas {
-    display: block;
-  }
+  body { margin: 0; overflow: hidden; }
+  canvas { display: block; }
 </style>
 </head>
 <body>
@@ -29,78 +24,112 @@ resize();
 window.addEventListener("resize", resize);
 
 // =====================
+// CONTROLES
+// =====================
+const keys = {};
+window.addEventListener("keydown", e => keys[e.key] = true);
+window.addEventListener("keyup", e => keys[e.key] = false);
+
+// =====================
 // JUGADOR
 // =====================
 let player = {
-  x: 100,
-  y: 0,
-  speed: 2
+  x: 200,
+  speed: 3
 };
 
 // =====================
 // FONDO
 // =====================
 function drawSky() {
-  const g = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  g.addColorStop(0, "#f7b7d2");
-  g.addColorStop(0.5, "#d6b4f0");
-  g.addColorStop(1, "#a8c7e8");
+  const g = ctx.createLinearGradient(0,0,0,canvas.height);
+  g.addColorStop(0,"#f7b7d2");
+  g.addColorStop(0.5,"#d6b4f0");
+  g.addColorStop(1,"#a8c7e8");
   ctx.fillStyle = g;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillRect(0,0,canvas.width,canvas.height);
 }
 
-function cloud(x, y, s) {
-  ctx.fillStyle = "rgba(255,255,255,0.85)";
+function cloud(x,y,s){
+  ctx.fillStyle="rgba(255,255,255,0.85)";
   ctx.beginPath();
-  ctx.arc(x, y, 30*s, 0, Math.PI*2);
-  ctx.arc(x+30*s, y-10*s, 35*s, 0, Math.PI*2);
-  ctx.arc(x+70*s, y, 30*s, 0, Math.PI*2);
+  ctx.arc(x,y,30*s,0,Math.PI*2);
+  ctx.arc(x+30*s,y-10*s,35*s,0,Math.PI*2);
+  ctx.arc(x+70*s,y,30*s,0,Math.PI*2);
   ctx.fill();
 }
 
-function drawClouds() {
-  cloud(150,120,1);
+function drawClouds(){
+  cloud(200,120,1);
   cloud(500,200,1.2);
   cloud(900,150,1);
   cloud(1300,220,1.4);
 }
 
-function drawGround() {
-  ctx.fillStyle = "#b9e3c6";
-  ctx.fillRect(0, canvas.height-120, canvas.width, 120);
-  ctx.fillStyle = "#c9a46a";
-  ctx.fillRect(0, canvas.height-60, canvas.width, 60);
+function tree(x,y){
+  ctx.fillStyle="#8b6f4e";
+  ctx.fillRect(x-5,y,10,40);
+  ctx.fillStyle="#a6d8b5";
+  ctx.beginPath();
+  ctx.arc(x,y,25,0,Math.PI*2);
+  ctx.fill();
+}
+
+function drawTrees(){
+  for(let i=0;i<8;i++){
+    tree(i*200+100, canvas.height-160);
+  }
+}
+
+function drawGround(){
+  ctx.fillStyle="#b9e3c6";
+  ctx.fillRect(0,canvas.height-120,canvas.width,120);
+  ctx.fillStyle="#c9a46a";
+  ctx.fillRect(0,canvas.height-60,canvas.width,60);
 }
 
 // =====================
 // PERSONAJE
 // =====================
-function drawPlayer() {
-  const yBase = canvas.height - 140;
+function drawPlayer(){
+  const y = canvas.height - 140;
 
   ctx.save();
-  ctx.translate(player.x, yBase);
+  ctx.translate(player.x, y);
 
   // cabeza
-  ctx.fillStyle = "#ffe0cc";
+  ctx.fillStyle="#ffe0cc";
   ctx.beginPath();
-  ctx.arc(0, -25, 14, 0, Math.PI*2);
+  ctx.arc(0,-28,14,0,Math.PI*2);
   ctx.fill();
 
-  // pelo
-  ctx.fillStyle = "#a67c52";
-  ctx.fillRect(-14, -40, 28, 12);
+  // ojos
+  ctx.fillStyle="#8b6a3e";
+  ctx.beginPath();
+  ctx.arc(-5,-30,2.5,0,Math.PI*2);
+  ctx.arc(5,-30,2.5,0,Math.PI*2);
+  ctx.fill();
 
-  // cuerpo (remera rayada)
-  ctx.fillStyle = "#7db9e8";
-  ctx.fillRect(-12, -10, 24, 22);
-  ctx.fillStyle = "#f4e38a";
-  ctx.fillRect(-12, 0, 24, 6);
+  // sonrisa
+  ctx.strokeStyle="#a05a4a";
+  ctx.beginPath();
+  ctx.arc(0,-25,6,0,Math.PI);
+  ctx.stroke();
+
+  // pelo
+  ctx.fillStyle="#a67c52";
+  ctx.fillRect(-14,-45,28,12);
+
+  // cuerpo (rayas azul/amarillo)
+  ctx.fillStyle="#7db9e8";
+  ctx.fillRect(-12,-10,24,22);
+  ctx.fillStyle="#f4e38a";
+  ctx.fillRect(-12,0,24,6);
 
   // piernas
-  ctx.fillStyle = "#555";
-  ctx.fillRect(-8, 12, 6, 16);
-  ctx.fillRect(2, 12, 6, 16);
+  ctx.fillStyle="#555";
+  ctx.fillRect(-8,12,6,16);
+  ctx.fillRect(2,12,6,16);
 
   ctx.restore();
 }
@@ -108,17 +137,19 @@ function drawPlayer() {
 // =====================
 // LOOP
 // =====================
-function update() {
+function update(){
   drawSky();
   drawClouds();
+  drawTrees();
   drawGround();
 
-  player.x += player.speed;
+  if(keys["ArrowRight"]) player.x += player.speed;
+  if(keys["ArrowLeft"]) player.x -= player.speed;
+
   drawPlayer();
 
   requestAnimationFrame(update);
 }
-
 update();
 </script>
 
