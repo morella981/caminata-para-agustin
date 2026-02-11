@@ -125,7 +125,7 @@ function update(){
 
  if(finalActivo){
    if(Date.now() - tiempoFinal < 3000){
-     camY += 2; // cámara baja solo 3 segundos
+     camY += 2;
    }
  }
 }
@@ -198,14 +198,19 @@ function draw(){
  if(dialogoFinal)
    drawBox("¡¡Me encontraste!!\nGracias por buscarme, bancarme\ny elegirme durante estos 3 años\ny medio. Sos el mejor novio\ndel universo Agustin,\nte amo con el alma <3");
 
- // FINAL: CORAZÓN APARECE ANTES
+ // FINAL: CORAZÓN PALPITANDO
  if(camY > canvas.height * 0.3){
+   const latido = 1 + Math.sin(Date.now() * 0.005) * 0.05;
+
+   const w = canvas.width * 0.9 * latido;
+   const h = canvas.height * 0.9 * latido;
+
    ctx.drawImage(
      corazonImg,
-     canvas.width/2 - canvas.width*0.45,
-     canvas.height/2 - canvas.height*0.45,
-     canvas.width*0.9,
-     canvas.height*0.9
+     canvas.width/2 - w/2,
+     canvas.height/2 - h/2,
+     w,
+     h
    );
  }
 }
