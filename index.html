@@ -120,7 +120,7 @@ function update(){
  }
 
  if(finalActivo){
-   camY -= 2; // cámara sube en sentido contrario
+   camY += 2; // cámara baja
  }
 }
 
@@ -193,20 +193,16 @@ function draw(){
    drawBox("¡¡Me encontraste!!\nGracias por buscarme, bancarme\ny elegirme durante estos 3 años\ny medio. Sos el mejor novio\ndel universo Agustin,\nte amo con el alma <3");
 
  // FINAL
- if(camY < -canvas.height){
-   ctx.drawImage(
-     corazonImg,
-     canvas.width/2-200,
-     canvas.height/2-200,
-     400,400
-   );
+if(camY > canvas.height){
+  ctx.drawImage(
+    corazonImg,
+    canvas.width/2 - canvas.width*0.4,
+    canvas.height/2 - canvas.height*0.4,
+    canvas.width*0.8,
+    canvas.height*0.8
+  );
+}
 
-   ctx.fillStyle="#fff";
-   ctx.font="28px Trebuchet MS";
-   ctx.fillText(
-     "Feliz San Valentín, te amo",
-     canvas.width/2-180,
-     canvas.height/2+10
    );
  }
 }
