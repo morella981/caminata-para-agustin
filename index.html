@@ -23,13 +23,9 @@ canvas.height = window.innerHeight;
 const agustin = new Image();
 agustin.src = "agustin.png";
 
-const morella = new Image();
-morella.src = "morella.png";
-
 // JUGADOR
 const player = {
   x: 100,
-  y: 0,
   w: 64,
   h: 64,
   speed: 4
@@ -38,17 +34,20 @@ const player = {
 const groundY = canvas.height - 100;
 player.y = groundY - player.h + 8;
 
-// CARTAS (frases definitivas)
+// CARTAS (TUS FRASES)
 const cartas = [
-  { x: 400, texto: "Sos mi lugar favorito 💌", tomada:false },
-  { x: 750, texto: "Caminar con vos es hogar 💗", tomada:false },
-  { x: 1100, texto: "Te elijo siempre 💕", tomada:false }
+  { x: 400, color:"#ffd1dc", texto:"Hola mi amor, espero que disfrutes esta caminata :)", tomada:false },
+  { x: 650, color:"#d1e8ff", texto:"Ojalá no te empaches con los chocolates de hoy", tomada:false },
+  { x: 900, color:"#e8d1ff", texto:"Sos el chico más lindo hasta en formato 2D", tomada:false },
+  { x: 1150, color:"#d1ffe3", texto:"Se te acumulan los pajaritos, ya pensaste un nombre para cada uno?", tomada:false },
+  { x: 1400, color:"#fff3d1", texto:"Apurate que te estoy esperando!!", tomada:false },
+  { x: 1650, color:"#ffd1f0", texto:"Ya casi me encontrás, besitoo", tomada:false }
 ];
+
+let cartaAbierta = null;
 
 // PÁJAROS
 const pajaros = [];
-
-let cartaActiva = null;
 
 // INPUT
 const keys = {};
@@ -57,30 +56,30 @@ window.addEventListener("keyup", e => keys[e.key] = false);
 
 // UPDATE
 function update() {
-  if (keys["ArrowRight"]) player.x += player.speed;
-  if (keys["ArrowLeft"]) player.x -= player.speed;
+  if (!cartaAbierta) {
+    if (keys["ArrowRight"]) player.x += player.speed;
+    if (keys["ArrowLeft"]) player.x -= player.speed;
+  }
 
   cartas.forEach(c => {
-    if (!c.tomada && Math.abs(player.x - c.x) < 40) {
-      cartaActiva = c;
-      if (keys["Enter"]) {
-        c.tomada = true;
-        pajaros.push({
-          texto: c.texto,
-          offsetX: Math.random()*40,
-          offsetY: -60 - Math.random()*30,
-          flap: Math.random()*10,
-          mostrar: false
-        });
-        cartaActiva = null;
-      }
+    if (!c.tomada && !cartaAbierta && Math.abs(player.x - c.x) < 30) {
+      cartaAbierta = c;
     }
   });
 
-  pajaros.forEach(p => {
-    p.flap += 0.08;
-    p.mostrar = Math.abs(p.offsetX) < 30;
-  });
+  // cerrar carta
+  if (cartaAbierta && keys["Enter"]) {
+    cartaAbierta.tomada = true;
+    pajaros.push({
+      color: cartaAbierta.color,
+      offsetX: Math.random()*40,
+      offsetY: -60 - Math.random()*30,
+      flap: Math.random()*10
+    });
+    cartaAbierta = null;
+  }
+
+  pajaros.forEach(p => p.flap += 0.1);
 }
 
 // DRAW
@@ -111,42 +110,37 @@ function draw() {
   // cartas
   cartas.forEach(c=>{
     if(!c.tomada){
-      ctx.fillStyle="#ffd1dc";
-      ctx.fillRect(c.x - camX, groundY - 30, 20, 30);
+      ctx.fillStyle=c.color;
+      ctx.fillRect(c.x - camX, groundY - 30, 22, 30);
     }
   });
 
-  // pajaros + texto
+  // pajaros
   pajaros.forEach((p,i)=>{
     const x = player.x - camX + p.offsetX + i*14;
     const y = player.y + p.offsetY + Math.sin(p.flap)*6;
-
-    // pájaro
-    ctx.fillStyle="#fff";
+    ctx.fillStyle=p.color;
     ctx.beginPath();
     ctx.moveTo(x,y);
-    ctx.lineTo(x+10,y+5);
-    ctx.lineTo(x,y+10);
+    ctx.lineTo(x+12,y+6);
+    ctx.lineTo(x,y+12);
     ctx.fill();
-
-    // texto
-    ctx.fillStyle="#000";
-    ctx.font="14px monospace";
-    ctx.fillText(p.texto, x - 20, y - 10);
   });
 
   // jugador
   ctx.drawImage(agustin, player.x - camX, player.y, player.w, player.h);
 
-  // carta abierta
-  if (cartaActiva && !cartaActiva.tomada) {
+  // carta abierta (overlay)
+  if (cartaAbierta) {
     ctx.fillStyle="#fff";
-    ctx.fillRect(50,50,420,120);
+    ctx.fillRect(canvas.width/2 - 250, canvas.height/2 - 100, 500, 200);
+    ctx.strokeRect(canvas.width/2 - 250, canvas.height/2 - 100, 500, 200);
+
     ctx.fillStyle="#000";
     ctx.font="20px monospace";
-    ctx.fillText(cartaActiva.texto, 70,120);
+    ctx.fillText(cartaAbierta.texto, canvas.width/2 - 220, canvas.height/2);
     ctx.font="14px monospace";
-    ctx.fillText("Presioná ENTER", 70,160);
+    ctx.fillText("Presioná ENTER para cerrar", canvas.width/2 - 220, canvas.height/2 + 40);
   }
 }
 
