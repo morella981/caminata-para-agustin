@@ -15,20 +15,20 @@
 <script>
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
 // IMÁGENES
 const agustin = new Image(); agustin.src = "agustin.png";
 const morella = new Image(); morella.src = "morella.png";
+const corazonImg = new Image(); corazonImg.src = "corazon.png";
 
 // JUGADOR
 const player = { x:100, y:0, w:64, h:64, speed:4 };
 const groundY = canvas.height - 100;
 player.y = groundY - player.h + 8;
 
-// CARTAS (todas desde el inicio, muy separadas)
+// CARTAS
 const cartas = [
  {x:500,color:"#ffd1dc",texto:"Hola mi amor,\nespero que disfrutes\nesta caminata :)"},
  {x:900,color:"#d1e8ff",texto:"Ojalá no te empaches\ncon los chocolates\nde hoy"},
@@ -39,13 +39,15 @@ const cartas = [
 ];
 
 let cartaAbierta=null;
+
+// PAJAROS
 const pajaros=[];
 
 // MORELLA
 const morellaX = 3100;
 let dialogoFinal=false;
 let abrazo=false;
-let camUp=0;
+let camY=0;
 let finalActivo=false;
 
 // INPUT
@@ -91,9 +93,17 @@ function update(){
 
  if(cartaAbierta && keys["Enter"]){
    cartaAbierta.tomada=true;
-   pajaros.push({color:cartaAbierta.color});
+   pajaros.push({x:player.x-20,y:player.y});
    cartaAbierta=null;
  }
+
+ // Movimiento fluido de pajaros (follow con delay)
+ pajaros.forEach((p,i)=>{
+   const targetX = i===0 ? player.x-25 : pajaros[i-1].x-18;
+   const targetY = player.y + 10;
+   p.x += (targetX - p.x)*0.1;
+   p.y += (targetY - p.y)*0.1;
+ });
 
  if(Math.abs(player.x-morellaX)<60 && !dialogoFinal && !abrazo){
    player.speed=0;
@@ -105,12 +115,12 @@ function update(){
  }
 
  if(abrazo){
-   if(player.x<morellaX-64) player.x+=1;
+   if(player.x<morellaX-70) player.x+=1;
    else finalActivo=true;
  }
 
  if(finalActivo){
-   camUp+=2;
+   camY -= 2; // cámara sube en sentido contrario
  }
 }
 
@@ -140,15 +150,15 @@ function draw(){
  g.addColorStop(.5,"#d6c1f0");
  g.addColorStop(1,"#9fd3ff");
  ctx.fillStyle=g;
- ctx.fillRect(0,-camUp,canvas.width,canvas.height*2);
+ ctx.fillRect(0,camY,canvas.width,canvas.height*2);
 
  // NUBES
  for(let i=0;i<5;i++)
-   drawCloud(200+i*400-camX,100+i*20-camUp);
+   drawCloud(200+i*400-camX,120+i*20+camY);
 
  // SUELO
  ctx.fillStyle="#7c9c6c";
- ctx.fillRect(0,groundY-camUp,canvas.width,100);
+ ctx.fillRect(0,groundY+camY,canvas.width,100);
 
  // ÁRBOLES
  for(let i=0;i<6;i++)
@@ -158,24 +168,24 @@ function draw(){
  cartas.forEach(c=>{
    if(!c.tomada){
      ctx.fillStyle=c.color;
-     ctx.fillRect(c.x-camX,groundY-30-camUp,22,30);
+     ctx.fillRect(c.x-camX,groundY-30+camY,22,30);
    }
  });
 
- // PÁJAROS
- pajaros.forEach((p,i)=>{
-   ctx.fillStyle=p.color;
+ // PAJAROS
+ pajaros.forEach(p=>{
+   ctx.fillStyle="#fff";
    ctx.beginPath();
-   ctx.moveTo(200+i*40,300-camUp);
-   ctx.lineTo(212+i*40,306-camUp);
-   ctx.lineTo(224+i*40,300-camUp);
-   ctx.lineTo(212+i*40,312-camUp);
+   ctx.moveTo(p.x-camX,p.y+camY);
+   ctx.lineTo(p.x-6-camX,p.y+6+camY);
+   ctx.lineTo(p.x+6-camX,p.y+6+camY);
+   ctx.closePath();
    ctx.fill();
  });
 
  // PERSONAJES
- ctx.drawImage(agustin,player.x-camX,player.y-camUp,64,64);
- ctx.drawImage(morella,morellaX-camX,player.y-camUp,64,64);
+ ctx.drawImage(agustin,player.x-camX,player.y+camY,64,64);
+ ctx.drawImage(morella,morellaX-camX,player.y+camY,64,64);
 
  if(cartaAbierta) drawBox(cartaAbierta.texto);
 
@@ -183,17 +193,21 @@ function draw(){
    drawBox("¡¡Me encontraste!!\nGracias por buscarme, bancarme\ny elegirme durante estos 3 años\ny medio. Sos el mejor novio\ndel universo Agustin,\nte amo con el alma <3");
 
  // FINAL
- if(camUp>canvas.height){
-   ctx.fillStyle="#ff6f91";
-   ctx.beginPath();
-   ctx.arc(canvas.width/2-70,canvas.height/2,70,0,Math.PI*2);
-   ctx.arc(canvas.width/2+70,canvas.height/2,70,0,Math.PI*2);
-   ctx.fillRect(canvas.width/2-140,canvas.height/2,280,140);
-   ctx.fill();
+ if(camY < -canvas.height){
+   ctx.drawImage(
+     corazonImg,
+     canvas.width/2-200,
+     canvas.height/2-200,
+     400,400
+   );
 
    ctx.fillStyle="#fff";
-   ctx.font="30px Trebuchet MS";
-   ctx.fillText("Feliz San Valentín, te amo",canvas.width/2-200,canvas.height/2+40);
+   ctx.font="28px Trebuchet MS";
+   ctx.fillText(
+     "Feliz San Valentín, te amo",
+     canvas.width/2-180,
+     canvas.height/2+10
+   );
  }
 }
 
