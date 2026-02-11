@@ -2,10 +2,18 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Caminata 💙</title>
+<title>Caminata para Agustín</title>
 <style>
-body { margin:0; overflow:hidden; }
-canvas { display:block; }
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: #87cfff;
+  }
+
+  canvas {
+    display: block;
+    image-rendering: pixelated;
+  }
 </style>
 </head>
 <body>
@@ -16,171 +24,124 @@ canvas { display:block; }
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-function resize(){
-  canvas.width = innerWidth;
-  canvas.height = innerHeight;
-}
-resize();
-addEventListener("resize", resize);
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 
+// --- IMÁGENES ---
+const agustin = new Image();
+agustin.src = "agustin.png";
+
+const morella = new Image();
+morella.src = "morella.png";
+
+// --- JUGADOR ---
+const player = {
+  x: 100,
+  y: canvas.height - 180,
+  w: 64,
+  h: 64,
+  speed: 4
+};
+
+// --- FINAL ---
+const goalX = 2200;
+let endScene = false;
+let hug = false;
+let cameraUp = 0;
+
+// --- INPUT ---
 const keys = {};
-addEventListener("keydown", e => keys[e.key]=true);
-addEventListener("keyup", e => keys[e.key]=false);
+window.addEventListener("keydown", e => keys[e.key] = true);
+window.addEventListener("keyup", e => keys[e.key] = false);
 
-let cameraX = 0;
+// --- LOOP ---
+function update() {
+  if (!endScene) {
+    if (keys["ArrowRight"]) player.x += player.speed;
+    if (keys["ArrowLeft"]) player.x -= player.speed;
+  }
 
-// ================= FONDO =================
-function drawSky(){
-  const g = ctx.createLinearGradient(0,0,0,canvas.height);
-  g.addColorStop(0,"#f8b6da");
-  g.addColorStop(0.5,"#d9c2f0");
-  g.addColorStop(1,"#c7d3f5");
-  ctx.fillStyle = g;
-  ctx.fillRect(0,0,canvas.width,canvas.height);
+  if (player.x >= goalX - 80) {
+    endScene = true;
+  }
 }
 
-function drawGround(){
-  ctx.fillStyle="#c8ebc9";
-  ctx.fillRect(-cameraX,canvas.height-140,4000,140);
-  ctx.fillStyle="#c9a46d";
-  ctx.fillRect(-cameraX,canvas.height-70,4000,70);
+// --- DIBUJO ---
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // cámara
+  let camX = player.x - 200;
+  if (camX < 0) camX = 0;
+
+  // cielo
+  ctx.fillStyle = "#87cfff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // nubes
+  ctx.fillStyle = "#ffffff";
+  for (let i = 0; i < 6; i++) {
+    ctx.fillRect(200*i - camX/2, 100, 120, 40);
+  }
+
+  // árboles
+  for (let i = 0; i < 40; i++) {
+    ctx.fillStyle = "#2f7d32";
+    ctx.fillRect(i*80 - camX, canvas.height - 220, 40, 120);
+  }
+
+  // suelo
+  ctx.fillStyle = "#5b3a1e";
+  ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
+
+  // personaje
+  ctx.drawImage(
+    agustin,
+    player.x - camX,
+    player.y,
+    player.w,
+    player.h
+  );
+
+  // morella
+  ctx.drawImage(
+    morella,
+    goalX - camX,
+    player.y,
+    64,
+    64
+  );
+
+  // escena final
+  if (endScene) {
+    hug = true;
+    cameraUp += 1;
+
+    // acercar
+    player.x += 1;
+
+    // corazón
+    ctx.fillStyle = "red";
+    ctx.font = "48px monospace";
+    ctx.fillText("❤", canvas.width/2 - 20, 200 - cameraUp);
+
+    ctx.fillStyle = "#fff";
+    ctx.font = "24px monospace";
+    ctx.fillText(
+      "Te quiero para siempre",
+      canvas.width/2 - 150,
+      250 - cameraUp
+    );
+  }
 }
 
-// ================= AGUSTÍN =================
-function drawAgustin(x){
-  const y = canvas.height - 160;
-  ctx.save();
-  ctx.translate(x-cameraX,y);
-
-  // cabeza
-  ctx.fillStyle="#ffe3cf";
-  ctx.beginPath();
-  ctx.arc(0,-34,16,0,Math.PI*2);
-  ctx.fill();
-
-  // ojos miel
-  ctx.fillStyle="#a6783c";
-  ctx.beginPath();
-  ctx.arc(-5,-36,2.3,0,Math.PI*2);
-  ctx.arc(5,-36,2.3,0,Math.PI*2);
-  ctx.fill();
-
-  // sonrisa
-  ctx.strokeStyle="#b05c4a";
-  ctx.beginPath();
-  ctx.arc(0,-30,6,0,Math.PI);
-  ctx.stroke();
-
-  // pelo despeinado mejorado
-  ctx.fillStyle="#a17448";
-  ctx.beginPath();
-  ctx.moveTo(-16,-52);
-  ctx.lineTo(-8,-56);
-  ctx.lineTo(0,-52);
-  ctx.lineTo(8,-56);
-  ctx.lineTo(16,-52);
-  ctx.lineTo(14,-36);
-  ctx.lineTo(-14,-36);
-  ctx.closePath();
-  ctx.fill();
-
-  // remera base
-  ctx.fillStyle="#7fb8e8";
-  ctx.fillRect(-14,-10,28,24);
-
-  // rayas horizontales
-  ctx.fillStyle="#f4e06d";
-  ctx.fillRect(-14,-8,28,4);
-  ctx.fillRect(-14,0,28,4);
-  ctx.fillRect(-14,8,28,4);
-
-  // brazos
-  ctx.fillStyle="#ffe3cf";
-  ctx.fillRect(-20,-8,6,18);
-  ctx.fillRect(14,-8,6,18);
-
-  // piernas
-  ctx.fillStyle="#555";
-  ctx.fillRect(-8,14,6,20);
-  ctx.fillRect(2,14,6,20);
-
-  ctx.restore();
-}
-
-// ================= VOS =================
-function drawYou(x){
-  const y = canvas.height - 160;
-  ctx.save();
-  ctx.translate(x-cameraX,y);
-
-  // cabeza
-  ctx.fillStyle="#ffe3cf";
-  ctx.beginPath();
-  ctx.arc(0,-34,16,0,Math.PI*2);
-  ctx.fill();
-
-  // ojos verdes
-  ctx.fillStyle="#5fb49c";
-  ctx.beginPath();
-  ctx.arc(-5,-36,2.3,0,Math.PI*2);
-  ctx.arc(5,-36,2.3,0,Math.PI*2);
-  ctx.fill();
-
-  // nariz
-  ctx.strokeStyle="#d6a18c";
-  ctx.beginPath();
-  ctx.moveTo(0,-34);
-  ctx.lineTo(0,-30);
-  ctx.stroke();
-
-  // sonrisa
-  ctx.strokeStyle="#b05c4a";
-  ctx.beginPath();
-  ctx.arc(0,-28,6,0,Math.PI);
-  ctx.stroke();
-
-  // pelo rubio largo
-  ctx.fillStyle="#f3d27a";
-  ctx.beginPath();
-  ctx.arc(0,-40,18,Math.PI,0);
-  ctx.fill();
-  ctx.fillRect(-18,-40,36,32);
-
-  // vestido
-  ctx.fillStyle="#f6b3d8";
-  ctx.fillRect(-12,-10,24,28);
-
-  // brazos
-  ctx.fillStyle="#ffe3cf";
-  ctx.fillRect(-20,-8,6,18);
-  ctx.fillRect(14,-8,6,18);
-
-  // piernas
-  ctx.fillStyle="#555";
-  ctx.fillRect(-6,18,5,18);
-  ctx.fillRect(1,18,5,18);
-
-  ctx.restore();
-}
-
-// ================= JUEGO =================
-let agustin = { x: 200, speed: 4 };
-let you = { x: 1600 };
-
-function loop(){
-  drawSky();
-  drawGround();
-
-  if(keys["ArrowRight"]) agustin.x += agustin.speed;
-  if(keys["ArrowLeft"]) agustin.x -= agustin.speed;
-
-  cameraX = agustin.x - canvas.width/3;
-
-  drawYou(you.x);
-  drawAgustin(agustin.x);
-
+// --- LOOP ---
+function loop() {
+  update();
+  draw();
   requestAnimationFrame(loop);
 }
+
 loop();
 </script>
 
