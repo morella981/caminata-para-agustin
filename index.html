@@ -49,6 +49,7 @@ let dialogoFinal=false;
 let abrazo=false;
 let camY=0;
 let finalActivo=false;
+let tiempoFinal=0;
 
 // INPUT
 const keys={};
@@ -116,11 +117,16 @@ function update(){
 
  if(abrazo){
    if(player.x<morellaX-70) player.x+=1;
-   else finalActivo=true;
+   else{
+     finalActivo=true;
+     if(tiempoFinal===0) tiempoFinal=Date.now();
+   }
  }
 
  if(finalActivo){
-   camY += 2; // cámara baja
+   if(Date.now() - tiempoFinal < 3000){
+     camY += 2; // cámara baja solo 3 segundos
+   }
  }
 }
 
@@ -192,8 +198,8 @@ function draw(){
  if(dialogoFinal)
    drawBox("¡¡Me encontraste!!\nGracias por buscarme, bancarme\ny elegirme durante estos 3 años\ny medio. Sos el mejor novio\ndel universo Agustin,\nte amo con el alma <3");
 
- // FINAL: SOLO CORAZÓN
- if(camY > canvas.height){
+ // FINAL: CORAZÓN APARECE ANTES
+ if(camY > canvas.height * 0.3){
    ctx.drawImage(
      corazonImg,
      canvas.width/2 - canvas.width*0.45,
