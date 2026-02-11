@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>Caminata para Agustín 💙</title>
 <style>
-body { margin:0; overflow:hidden; font-family: sans-serif; }
+body { margin:0; overflow:hidden; font-family:sans-serif; }
 canvas { display:block; }
 #dialog {
   position: fixed;
@@ -18,7 +18,7 @@ canvas { display:block; }
   background: white;
   padding: 25px;
   border-radius: 20px;
-  max-width: 400px;
+  max-width: 420px;
   text-align: center;
 }
 #dialogBox button {
@@ -48,62 +48,104 @@ const ctx = canvas.getContext("2d");
 const dialog = document.getElementById("dialog");
 const dialogText = document.getElementById("dialogText");
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+function resize(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
 
 // =====================
 // CONTROLES
 // =====================
 const keys = {};
-window.addEventListener("keydown", e => keys[e.key] = true);
-window.addEventListener("keyup", e => keys[e.key] = false);
+window.addEventListener("keydown", e => keys[e.key]=true);
+window.addEventListener("keyup", e => keys[e.key]=false);
+
+// =====================
+// CÁMARA
+// =====================
+let cameraX = 0;
 
 // =====================
 // JUGADOR
 // =====================
-let player = { x: 200, speed: 3 };
+let player = {
+  x: 200,
+  speed: 4
+};
 
 // =====================
 // CARTAS
 // =====================
 const cards = [
-  { x: 500, text: "Hola mi amor, espero que disfrutes esta caminata :)", color:"#f7c1d9" },
-  { x: 800, text: "Ojalá no te empaches con los chocolates de hoy", color:"#f4d6a0" },
-  { x: 1100, text: "Sos el chico mas lindo hasta en formato 2D", color:"#c1d9f7" },
-  { x: 1400, text: "Se te acumulan los pajaritos, ya pensaste un nombre para cada uno?", color:"#d3c1f7" },
-  { x: 1700, text: "Apurate que te estoy esperando!!", color:"#c1f7d9" },
-  { x: 2000, text: "Ya casi me encontrás, besitoo", color:"#f7c1c1" }
+  { x: 600, text:"Hola mi amor, espero que disfrutes esta caminata :)", color:"#f7c1d9" },
+  { x: 900, text:"Ojalá no te empaches con los chocolates de hoy", color:"#f4d6a0" },
+  { x: 1200, text:"Sos el chico mas lindo hasta en formato 2D", color:"#c1d9f7" },
+  { x: 1500, text:"Se te acumulan los pajaritos, ya pensaste un nombre para cada uno?", color:"#d3c1f7" },
+  { x: 1800, text:"Apurate que te estoy esperando!!", color:"#c1f7d9" },
+  { x: 2100, text:"Ya casi me encontrás, besitoo", color:"#f7c1c1" }
 ];
-
 let birds = [];
 let activeCard = null;
 
 // =====================
 // FONDO
 // =====================
-function drawSky() {
+function drawSky(){
   const g = ctx.createLinearGradient(0,0,0,canvas.height);
   g.addColorStop(0,"#f7b7d2");
   g.addColorStop(0.5,"#d6b4f0");
   g.addColorStop(1,"#a8c7e8");
-  ctx.fillStyle = g;
+  ctx.fillStyle=g;
   ctx.fillRect(0,0,canvas.width,canvas.height);
 }
 
-function drawGround() {
+function cloud(x,y,s){
+  ctx.fillStyle="rgba(255,255,255,0.85)";
+  ctx.beginPath();
+  ctx.arc(x,y,30*s,0,Math.PI*2);
+  ctx.arc(x+30*s,y-10*s,35*s,0,Math.PI*2);
+  ctx.arc(x+70*s,y,30*s,0,Math.PI*2);
+  ctx.fill();
+}
+
+function drawClouds(){
+  cloud(200-cameraX*0.3,120,1);
+  cloud(600-cameraX*0.3,200,1.2);
+  cloud(1000-cameraX*0.3,150,1);
+  cloud(1500-cameraX*0.3,220,1.4);
+}
+
+function tree(x,y){
+  ctx.fillStyle="#8b6f4e";
+  ctx.fillRect(x-5,y,10,40);
+  ctx.fillStyle="#a6d8b5";
+  ctx.beginPath();
+  ctx.arc(x,y,25,0,Math.PI*2);
+  ctx.fill();
+}
+
+function drawTrees(){
+  for(let i=0;i<20;i++){
+    tree(i*250-cameraX*0.6, canvas.height-180);
+  }
+}
+
+function drawGround(){
   ctx.fillStyle="#b9e3c6";
-  ctx.fillRect(0,canvas.height-120,canvas.width,120);
+  ctx.fillRect(-cameraX,canvas.height-140,5000,140);
   ctx.fillStyle="#c9a46a";
-  ctx.fillRect(0,canvas.height-60,canvas.width,60);
+  ctx.fillRect(-cameraX,canvas.height-70,5000,70);
 }
 
 // =====================
 // DIBUJOS
 // =====================
 function drawPlayer(){
-  const y = canvas.height - 140;
+  const y = canvas.height - 160;
   ctx.save();
-  ctx.translate(player.x,y);
+  ctx.translate(player.x-cameraX,y);
 
   ctx.fillStyle="#ffe0cc";
   ctx.beginPath();
@@ -129,6 +171,10 @@ function drawPlayer(){
   ctx.fillStyle="#f4e38a";
   ctx.fillRect(-12,0,24,6);
 
+  ctx.fillStyle="#555";
+  ctx.fillRect(-8,12,6,18);
+  ctx.fillRect(2,12,6,18);
+
   ctx.restore();
 }
 
@@ -136,19 +182,19 @@ function drawCards(){
   cards.forEach(c=>{
     if(!c.collected){
       ctx.fillStyle=c.color;
-      ctx.fillRect(c.x,canvas.height-140,24,32);
+      ctx.fillRect(c.x-cameraX,canvas.height-170,26,34);
     }
   });
 }
 
 function drawBirds(){
   birds.forEach((b,i)=>{
-    b.x += (player.x - 30*i - b.x)*0.05;
+    b.x += (player.x-40*i-b.x)*0.05;
     ctx.fillStyle=b.color;
     ctx.beginPath();
-    ctx.moveTo(b.x,canvas.height-180);
-    ctx.lineTo(b.x+10,canvas.height-170);
-    ctx.lineTo(b.x,canvas.height-160);
+    ctx.moveTo(b.x-cameraX,canvas.height-220);
+    ctx.lineTo(b.x+10-cameraX,canvas.height-210);
+    ctx.lineTo(b.x-cameraX,canvas.height-200);
     ctx.fill();
   });
 }
@@ -161,7 +207,6 @@ function openDialog(card){
   dialogText.innerText = card.text;
   dialog.style.display="flex";
 }
-
 function closeDialog(){
   dialog.style.display="none";
   activeCard.collected=true;
@@ -174,17 +219,21 @@ function closeDialog(){
 // =====================
 function update(){
   drawSky();
+  drawClouds();
+  drawTrees();
   drawGround();
 
   if(keys["ArrowRight"]) player.x+=player.speed;
   if(keys["ArrowLeft"]) player.x-=player.speed;
+
+  cameraX = player.x - canvas.width/3;
 
   drawCards();
   drawBirds();
   drawPlayer();
 
   cards.forEach(c=>{
-    if(!c.collected && Math.abs(player.x-c.x)<20){
+    if(!c.collected && Math.abs(player.x-c.x)<25){
       openDialog(c);
     }
   });
