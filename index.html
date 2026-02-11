@@ -36,19 +36,19 @@ const player = {
 };
 
 const groundY = canvas.height - 100;
-player.y = groundY - player.h + 6;
+player.y = groundY - player.h + 8;
 
-// CARTAS
+// CARTAS (frases definitivas)
 const cartas = [
   { x: 400, texto: "Sos mi lugar favorito 💌", tomada:false },
-  { x: 700, texto: "Caminar con vos es hogar 💗", tomada:false },
-  { x: 1000, texto: "Te elijo siempre 💕", tomada:false }
+  { x: 750, texto: "Caminar con vos es hogar 💗", tomada:false },
+  { x: 1100, texto: "Te elijo siempre 💕", tomada:false }
 ];
-
-let cartaActiva = null;
 
 // PÁJAROS
 const pajaros = [];
+
+let cartaActiva = null;
 
 // INPUT
 const keys = {};
@@ -66,16 +66,21 @@ function update() {
       if (keys["Enter"]) {
         c.tomada = true;
         pajaros.push({
+          texto: c.texto,
           offsetX: Math.random()*40,
           offsetY: -60 - Math.random()*30,
-          flap: Math.random()*10
+          flap: Math.random()*10,
+          mostrar: false
         });
         cartaActiva = null;
       }
     }
   });
 
-  pajaros.forEach(p => p.flap += 0.1);
+  pajaros.forEach(p => {
+    p.flap += 0.08;
+    p.mostrar = Math.abs(p.offsetX) < 30;
+  });
 }
 
 // DRAW
@@ -111,17 +116,23 @@ function draw() {
     }
   });
 
-  // pajaros
+  // pajaros + texto
   pajaros.forEach((p,i)=>{
-    const x = player.x - camX + p.offsetX + i*12;
-    const y = player.y + p.offsetY + Math.sin(p.flap)*5;
+    const x = player.x - camX + p.offsetX + i*14;
+    const y = player.y + p.offsetY + Math.sin(p.flap)*6;
 
+    // pájaro
     ctx.fillStyle="#fff";
     ctx.beginPath();
     ctx.moveTo(x,y);
     ctx.lineTo(x+10,y+5);
     ctx.lineTo(x,y+10);
     ctx.fill();
+
+    // texto
+    ctx.fillStyle="#000";
+    ctx.font="14px monospace";
+    ctx.fillText(p.texto, x - 20, y - 10);
   });
 
   // jugador
