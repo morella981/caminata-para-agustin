@@ -4,16 +4,8 @@
 <meta charset="UTF-8">
 <title>Caminata para Agustín</title>
 <style>
-  body {
-    margin: 0;
-    overflow: hidden;
-    background: #87cfff;
-  }
-
-  canvas {
-    display: block;
-    image-rendering: pixelated;
-  }
+  body { margin: 0; overflow: hidden; background:#87cfff; }
+  canvas { display:block; image-rendering: pixelated; }
 </style>
 </head>
 <body>
@@ -27,121 +19,107 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// --- IMÁGENES ---
+// IMÁGENES
 const agustin = new Image();
 agustin.src = "agustin.png";
 
 const morella = new Image();
 morella.src = "morella.png";
 
-// --- JUGADOR ---
+// JUGADOR
 const player = {
   x: 100,
-  y: canvas.height - 180,
+  y: 0,
   w: 64,
   h: 64,
   speed: 4
 };
 
-// --- FINAL ---
-const goalX = 2200;
-let endScene = false;
-let hug = false;
-let cameraUp = 0;
+const groundY = canvas.height - 100;
+player.y = groundY - player.h;
 
-// --- INPUT ---
+// CARTAS
+const cartas = [
+  { x: 400, texto: "Sos mi lugar favorito 💌", tomada:false },
+  { x: 700, texto: "Caminar con vos es hogar 💗", tomada:false },
+  { x: 1000, texto: "Te elijo siempre 💕", tomada:false }
+];
+
+let cartaActiva = null;
+
+// INPUT
 const keys = {};
 window.addEventListener("keydown", e => keys[e.key] = true);
 window.addEventListener("keyup", e => keys[e.key] = false);
 
-// --- LOOP ---
+// UPDATE
 function update() {
-  if (!endScene) {
-    if (keys["ArrowRight"]) player.x += player.speed;
-    if (keys["ArrowLeft"]) player.x -= player.speed;
-  }
+  if (keys["ArrowRight"]) player.x += player.speed;
+  if (keys["ArrowLeft"]) player.x -= player.speed;
 
-  if (player.x >= goalX - 80) {
-    endScene = true;
-  }
+  cartas.forEach(c => {
+    if (!c.tomada && Math.abs(player.x - c.x) < 40) {
+      cartaActiva = c;
+      if (keys["Enter"]) c.tomada = true;
+    }
+  });
 }
 
-// --- DIBUJO ---
+// DRAW
 function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // cámara
-  let camX = player.x - 200;
-  if (camX < 0) camX = 0;
+  const camX = Math.max(player.x - 200, 0);
 
   // cielo
-  ctx.fillStyle = "#87cfff";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle="#87cfff";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
 
   // nubes
-  ctx.fillStyle = "#ffffff";
-  for (let i = 0; i < 6; i++) {
-    ctx.fillRect(200*i - camX/2, 100, 120, 40);
+  ctx.fillStyle="#fff";
+  for(let i=0;i<6;i++){
+    ctx.fillRect(i*300 - camX*0.3, 80, 120, 40);
   }
 
   // árboles
-  for (let i = 0; i < 40; i++) {
-    ctx.fillStyle = "#2f7d32";
-    ctx.fillRect(i*80 - camX, canvas.height - 220, 40, 120);
+  for(let i=0;i<40;i++){
+    ctx.fillStyle="#2f7d32";
+    ctx.fillRect(i*80 - camX, groundY-120, 40, 120);
   }
 
   // suelo
-  ctx.fillStyle = "#5b3a1e";
-  ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
+  ctx.fillStyle="#5b3a1e";
+  ctx.fillRect(0, groundY, canvas.width, 100);
 
-  // personaje
-  ctx.drawImage(
-    agustin,
-    player.x - camX,
-    player.y,
-    player.w,
-    player.h
-  );
+  // cartas
+  cartas.forEach(c=>{
+    if(!c.tomada){
+      ctx.fillStyle="#ffd1dc";
+      ctx.fillRect(c.x - camX, groundY - 30, 20, 30);
+    }
+  });
 
-  // morella
-  ctx.drawImage(
-    morella,
-    goalX - camX,
-    player.y,
-    64,
-    64
-  );
+  // jugador
+  ctx.drawImage(agustin, player.x - camX, player.y, player.w, player.h);
 
-  // escena final
-  if (endScene) {
-    hug = true;
-    cameraUp += 1;
-
-    // acercar
-    player.x += 1;
-
-    // corazón
-    ctx.fillStyle = "red";
-    ctx.font = "48px monospace";
-    ctx.fillText("❤", canvas.width/2 - 20, 200 - cameraUp);
-
-    ctx.fillStyle = "#fff";
-    ctx.font = "24px monospace";
-    ctx.fillText(
-      "Te quiero para siempre",
-      canvas.width/2 - 150,
-      250 - cameraUp
-    );
+  // carta abierta
+  if (cartaActiva && !cartaActiva.tomada) {
+    ctx.fillStyle="#fff";
+    ctx.fillRect(50,50,400,120);
+    ctx.fillStyle="#000";
+    ctx.font="20px monospace";
+    ctx.fillText(cartaActiva.texto, 70,120);
+    ctx.font="14px monospace";
+    ctx.fillText("Presioná ENTER", 70,160);
   }
 }
 
-// --- LOOP ---
-function loop() {
+// LOOP
+function loop(){
   update();
   draw();
   requestAnimationFrame(loop);
 }
-
 loop();
 </script>
 
