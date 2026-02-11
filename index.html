@@ -18,6 +18,12 @@ const ctx = canvas.getContext("2d");
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
+// 🎵 MÚSICA
+const musica = new Audio("musica.mp3");
+musica.loop = true;
+musica.volume = 0.3;
+let musicaIniciada = false;
+
 // IMÁGENES
 const agustin = new Image(); agustin.src = "agustin.png";
 const morella = new Image(); morella.src = "morella.png";
@@ -53,9 +59,23 @@ let tiempoFinal=0;
 
 // INPUT
 const keys={};
-window.addEventListener("keydown",e=>keys[e.key]=true);
+window.addEventListener("keydown",e=>{
+  keys[e.key]=true;
+
+  // ▶️ iniciar música con primer input
+  if(!musicaIniciada){
+    musica.play();
+    musicaIniciada = true;
+  }
+});
 window.addEventListener("keyup",e=>keys[e.key]=false);
+
 canvas.addEventListener("click",()=>{
+  if(!musicaIniciada){
+    musica.play();
+    musicaIniciada = true;
+  }
+
   if(Math.abs(player.x-morellaX)<80 && !dialogoFinal && !abrazo)
     dialogoFinal=true;
 });
@@ -98,7 +118,6 @@ function update(){
    cartaAbierta=null;
  }
 
- // Movimiento fluido de pajaros
  pajaros.forEach((p,i)=>{
    const targetX = i===0 ? player.x-25 : pajaros[i-1].x-18;
    const targetY = player.y + 10;
@@ -150,7 +169,6 @@ function draw(){
  ctx.clearRect(0,0,canvas.width,canvas.height);
  const camX=Math.max(player.x-200,0);
 
- // CIELO
  const g=ctx.createLinearGradient(0,0,0,canvas.height);
  g.addColorStop(0,"#f6b1c3");
  g.addColorStop(.5,"#d6c1f0");
@@ -158,19 +176,15 @@ function draw(){
  ctx.fillStyle=g;
  ctx.fillRect(0,camY - canvas.height,canvas.width,canvas.height*3);
 
- // NUBES
  for(let i=0;i<5;i++)
    drawCloud(200+i*400-camX,120+i*20+camY);
 
- // SUELO
  ctx.fillStyle="#7c9c6c";
  ctx.fillRect(0,groundY+camY,canvas.width,100);
 
- // ÁRBOLES
  for(let i=0;i<6;i++)
    drawTree(300+i*500-camX);
 
- // CARTAS
  cartas.forEach(c=>{
    if(!c.tomada){
      ctx.fillStyle=c.color;
@@ -178,7 +192,6 @@ function draw(){
    }
  });
 
- // PAJAROS
  pajaros.forEach(p=>{
    ctx.fillStyle="#fff";
    ctx.beginPath();
@@ -189,7 +202,6 @@ function draw(){
    ctx.fill();
  });
 
- // PERSONAJES
  ctx.drawImage(agustin,player.x-camX,player.y+camY,64,64);
  ctx.drawImage(morella,morellaX-camX,player.y+camY,64,64);
 
@@ -198,10 +210,8 @@ function draw(){
  if(dialogoFinal)
    drawBox("¡¡Me encontraste!!\nGracias por buscarme, bancarme\ny elegirme durante estos 3 años\ny medio. Sos el mejor novio\ndel universo Agustin,\nte amo con el alma <3");
 
- // FINAL: CORAZÓN PALPITANDO
  if(camY > canvas.height * 0.3){
    const latido = 1 + Math.sin(Date.now() * 0.005) * 0.05;
-
    const w = canvas.width * 0.9 * latido;
    const h = canvas.height * 0.9 * latido;
 
